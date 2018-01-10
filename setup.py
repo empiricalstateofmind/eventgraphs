@@ -1,6 +1,6 @@
 from setuptools import setup
 
-setup(name='eventgraph',
+setup(name='eventgraphs',
       version='0.1',
       description='Finding temporal components and motifs in temporal networks',
       long_description='Finding temporal components and motifs in temporal networks',
@@ -12,7 +12,7 @@ setup(name='eventgraph',
       author='Andrew Mellor',
       author_email='mellor91@hotmail.co.uk',
       license='MIT',
-      packages=['motifs'],
+      packages=['eventgraphs'],
       install_requires=[
           'networkx',
           'pandas',
