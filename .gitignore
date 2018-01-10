@@ -1,0 +1,5 @@
+*.sublime*
+*.dot
+*.pyc
+*.ipynb_checkpoints/
+*.png
