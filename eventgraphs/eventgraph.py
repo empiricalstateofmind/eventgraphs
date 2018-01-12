@@ -3,6 +3,7 @@ import pandas as pd
 
 from collections import defaultdict
 from collections.abc import Iterable
+import json
 
 from scipy.sparse import csc_matrix, identity
 from scipy.sparse import linalg as spla
@@ -20,11 +21,20 @@ class EventGraph(object):
     """
 
     @classmethod
-    def from_eventlist(cls, events, graph_rules):
+    def from_pandas_eventlist(cls, events, graph_rules):
         """
         Loading in from event list (needs to be built).
         Add in some sanitation.
         """
+        return cls(events=events, graph_rules=graph_rules)
+
+    @classmethod
+    def from_json_eventlist(cls, filepath, graph_rules):
+        """
+        """
+
+
+
         return cls(events=events, graph_rules=graph_rules)
 
     @classmethod
@@ -35,37 +45,50 @@ class EventGraph(object):
         pass
 
     @classmethod
-    def from_file(cls, events, graph_rules):
+    def load_from_file(cls, filepath):
         """
         Loading in from saved event graph.
         """
-        pass
+        if filepath.endswith('.json'):
+            with open(filepath, 'r', encoding='utf-8') as file:
+                payload = json.load(file)
+                for item in ['events', 'events_meta', 'eg_edges']:
+                    payload[item] = pd.DataFrame.from_dict(payload[item])
 
+        return cls(**payload)
     
     def __init__(self, *args, **kwargs):
         """
         """
         
         self.events = kwargs['events']
-        self.events_meta = pd.DataFrame(index=self.events.index)
+
+        if 'events_meta' in kwargs.keys():
+            self.events_meta = kwargs['events_meta']
+        else:
+            self.events_meta = pd.DataFrame(index=self.events.index)
+        
         self.ne_incidence = None
         self.ne_matrix = None
         self.event_pair_processed = event_pair_processed = defaultdict(lambda: defaultdict(bool))
 
-        if isinstance(kwargs['graph_rules'], dict):
-            # Possibly require further checks for custom rules
+        if 'rules' in kwargs.keys():
             self.event_graph_rules = kwargs['graph_rules']
-        elif kwargs['graph_rules'].lower() in ['teg', 'temporal event graph', 'temporal_event_graph']:
-            self.event_graph_rules = PREBUILT['temporal_event_graph']
-        elif kwargs['graph_rules'].lower() in ['eg', 'event graph', 'event_graph']:
-            self.event_graph_rules = PREBUILT['general_event_graph']
-        elif kwargs['graph_rules'].lower() in ['pfg', 'path finder graph', 'path_finder_graph']:
-            self.event_graph_rules = PREBUILT['path_finder_graph']
         else:
-            raise Exception("Incompatible Rules")    
-
+            if isinstance(kwargs['graph_rules'], dict):
+                # Possibly require further checks for custom rules
+                self.event_graph_rules = kwargs['graph_rules']
+            elif kwargs['graph_rules'].lower() in ['teg', 'temporal event graph', 'temporal_event_graph']:
+                self.event_graph_rules = PREBUILT['temporal_event_graph']
+            elif kwargs['graph_rules'].lower() in ['eg', 'event graph', 'event_graph']:
+                self.event_graph_rules = PREBUILT['general_event_graph']
+            elif kwargs['graph_rules'].lower() in ['pfg', 'path finder graph', 'path_finder_graph']:
+                self.event_graph_rules = PREBUILT['path_finder_graph']
+            else:
+                raise Exception("Incompatible Rules")    
         
-        #
+        if 'eg_edges' in kwargs.keys():
+            self.eg_edges = kwargs['eg_edges']
 
         self._generate_node_event_incidence()
 
@@ -160,7 +183,7 @@ class EventGraph(object):
         motifs = {}
 
         # If edge type isnt a single letter we may want to shorten it.
-        if edge_type is None:
+        if edge_type is None or edge_type not in self.events.columns:
             columns = ['source', 'target', 'time']
         else:
             columns = ['source', 'target', 'time', edge_type]
@@ -212,8 +235,23 @@ class EventGraph(object):
                                       connection='weak',
                                       return_labels=True)[1]
 
-    def save(self):
+    def save(self, fp, method='json'):
         """
-        Save to file, either as tables or object pickle.
+        Save to file, either as json or object pickle.
         """
-        pass
+
+        if method=='json':
+            # A temporary fix for the unserialisable Motif class
+            # Need to also fix numpy integers! Sigh
+            edges = self.eg_edges.copy()
+            edges.motif = edges.motif.astype(str)
+            payload = {'events': self.events.to_dict('records'),
+                       'events_meta': self.events_meta.to_dict('records'),
+                       'eg_edges': edges.to_dict('records'),
+                       'rules':self.event_graph_rules}
+
+            with open(fp, 'w', encoding='utf-8') as file:
+                json.dump(payload, file, sort_keys=True, indent=4)
+
+        else:
+            raise Exception
