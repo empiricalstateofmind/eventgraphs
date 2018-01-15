@@ -56,6 +56,8 @@ class EventGraph(object):
 	# TO DO, along with other magic methods where needed.
 	#def __repr__(self):
 
+	def __len__(self):
+		return self.M
 
 	@classmethod
 	def from_pandas_eventlist(cls, events, graph_rules, **kwargs):
@@ -133,6 +135,8 @@ class EventGraph(object):
 		
 		self.ne_incidence = None
 		self.ne_matrix = None
+
+		# This will now give the index of the event pair (edge) in the event graph
 		self.event_pair_processed = defaultdict(lambda: defaultdict(bool))
 
 		if 'rules' in kwargs.keys():
@@ -261,6 +265,7 @@ class EventGraph(object):
 			None
 		"""
 		eg_edges = []
+		edge_indexer = 0
 		for count, events in enumerate(self.ne_incidence.values()):
 			if verbose and count%50==0: print(count, '/', self.N, end='\r', flush=True)
 			for ix, event_one in enumerate(events): 
@@ -274,7 +279,8 @@ class EventGraph(object):
 						e2 = self.events.iloc[event_two]
 						connected, dt = self.event_graph_rules['event_processor'](e1,e2)
 
-						self.event_pair_processed[event_one][event_two] = True
+						self.event_pair_processed[event_one][event_two] = edge_indexer
+						edge_indexer += 1
 
 						# If we want to enforce a dt
 						if dt > self.event_graph_rules['delta_cutoff']:
@@ -454,7 +460,9 @@ class EventGraph(object):
 
 		# Do we want to do some sorting and enumeration of components?
 
-		cpts = [self.filter_events(events) for events in cpts.values()]
+		cpts = sorted([self.filter_events(events) for events in cpts.values()], 
+					  key=lambda x: len(x),
+					  reverse=True)
 		return cpts
 
 	def filter_edges(self, delta_lb=None, delta_ub=None, motif_types=None):
@@ -503,7 +511,16 @@ class EventGraph(object):
 		events = self.events.iloc[event_indices]
 		events_meta = self.events_meta.iloc[event_indices]
 
-		eg_edges = self.eg_edges # Need to check that both the source and target are in the event_indices
+		# This may be slow.
+		# Possibly make a new version of event_pair_processed first and
+		# then pass it into the payload.
+		# This would allow for repeated filtering (currently not possible!)
+		edges_to_keep = []
+		for ix_one in events.index:
+		    keepers = [edge_ix for ix_two, edge_ix in self.event_pair_processed[ix_one].items() if ix_two in events.index]
+		    edges_to_keep.extend(keepers)
+
+		eg_edges = self.eg_edges.iloc[edges_to_keep] 
 
 		payload = {'eg_edges': eg_edges,
 		   'events': events,
@@ -532,7 +549,7 @@ class EventGraph(object):
 			payload = {'events': ast.literal_eval(self.events.to_json(orient='records')),
 					   'events_meta': ast.literal_eval(self.events_meta.to_json(orient='records')),
 					   'eg_edges': ast.literal_eval(self.eg_edges.to_json(orient='records')),
-					   'graph_rules': "VOID" # self.event_graph_rules, # omitted as function is not serialisable.
+					   'graph_rules': "teg" # self.event_graph_rules, # omitted as function is not serialisable.
 					   }
 
 			with open(fp, 'w', encoding='utf-8') as file:
