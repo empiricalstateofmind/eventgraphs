@@ -3,7 +3,7 @@ def basic_event_processor(e1,e2):
 	   
 	"""
 
-	if hastattr(e1, 'duration'):
+	if hasattr(e1, 'duration'):
 		dt = e2.time - (e1.time + e1.duration)
 	else:
 		dt = e2.time - e1.time
@@ -28,7 +28,7 @@ def path_finding_event_processor(e1,e2):
 	"""
 	"""
 
-	if hastattr(e1, 'duration'):
+	if hasattr(e1, 'duration'):
 		dt = e2.time - (e1.time + e1.duration)
 	else:
 		dt = e2.time - e1.time
