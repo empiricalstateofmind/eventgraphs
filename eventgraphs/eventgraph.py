@@ -137,7 +137,8 @@ class EventGraph(object):
 		self.ne_matrix = None
 
 		# This will now give the index of the event pair (edge) in the event graph
-		self.event_pair_processed = defaultdict(lambda: defaultdict(bool))
+		self.event_pair_processed = kwargs.get('event_pair_processed',
+											   defaultdict(lambda: defaultdict(bool)))
 
 		if 'rules' in kwargs.keys():
 			self.event_graph_rules = kwargs['graph_rules']
@@ -275,8 +276,8 @@ class EventGraph(object):
 					if self.event_pair_processed[event_one][event_two]:
 						pass
 					else:
-						e1 = self.events.iloc[event_one]
-						e2 = self.events.iloc[event_two]
+						e1 = self.events.loc[event_one]
+						e2 = self.events.loc[event_two]
 						connected, dt = self.event_graph_rules['event_processor'](e1,e2)
 
 						self.event_pair_processed[event_one][event_two] = edge_indexer
@@ -318,8 +319,8 @@ class EventGraph(object):
 					if self.event_pair_processed[event_one][event_two]:
 						pass
 					else:
-						e1 = self.events.iloc[event_one]
-						e2 = self.events.iloc[event_two]
+						e1 = self.events.loc[event_one]
+						e2 = self.events.loc[event_two]
 						connected, dt = self.event_graph_rules['event_object_processor'](e1,e2)
 
 						self.event_pair_processed[event_one][event_two] = True
@@ -366,8 +367,8 @@ class EventGraph(object):
 			total_edges = len(self.eg_edges)
 		for ix, row in self.eg_edges.iterrows():
 			if verbose and ix%50==0: print( ix, '/', total_edges, end='\r', flush=True)
-			e1 = self.events.iloc[row.source][columns]
-			e2 = self.events.iloc[row.target][columns] 
+			e1 = self.events.loc[row.source][columns]
+			e2 = self.events.loc[row.target][columns] 
 			motif = Motif(e1,e2,condensed)
 			motifs[ix] = str(motif) # We'll just work with the string for now
 
@@ -490,11 +491,13 @@ class EventGraph(object):
 		if motif_types is not None:
 			eg_edges = eg_edges[eg_edges.motif.isin(motif_types)]
 
+		event_pair_processed = {row.source:{row.target: ix} for ix, row in eg_edges.iterrows()}
 
 		payload = {'eg_edges':eg_edges,
 				   'events':self.events,
 				   'events_meta':self.events_meta,
-				   'graph_rules': self.event_graph_rules
+				   'graph_rules': self.event_graph_rules,
+				   'event_pair_processed': event_pair_processed
 				   }
 
 		return self.__class__(**payload)
@@ -512,8 +515,8 @@ class EventGraph(object):
 			EventGraph: 
 		"""
 
-		events = self.events.iloc[event_indices]
-		events_meta = self.events_meta.iloc[event_indices]
+		events = self.events.loc[event_indices]
+		events_meta = self.events_meta.loc[event_indices]
 
 		# This may be slow.
 		# Possibly make a new version of event_pair_processed first and
@@ -521,15 +524,17 @@ class EventGraph(object):
 		# This would allow for repeated filtering (currently not possible!)
 		edges_to_keep = []
 		for ix_one in events.index:
-		    keepers = [edge_ix for ix_two, edge_ix in self.event_pair_processed[ix_one].items() if ix_two in events.index]
+		    keepers = [edge_ix for ix_two, edge_ix in self.event_pair_processed.get(ix_one,{}).items() if ix_two in events.index]
 		    edges_to_keep.extend(keepers)
 
-		eg_edges = self.eg_edges.iloc[edges_to_keep] 
+		#return self.eg_edges, edges_to_keep
+		eg_edges = self.eg_edges.loc[edges_to_keep] 
 
 		payload = {'eg_edges': eg_edges,
 		   'events': events,
 		   'events_meta': events_meta,
-		   'graph_rules': self.event_graph_rules
+		   'graph_rules': self.event_graph_rules,
+		   'event_pair_processed': self.event_pair_processed
 		   }
 
 		return self.__class__(**payload)
@@ -553,7 +558,8 @@ class EventGraph(object):
 			payload = {'events': ast.literal_eval(self.events.to_json(orient='records')),
 					   'events_meta': ast.literal_eval(self.events_meta.to_json(orient='records')),
 					   'eg_edges': ast.literal_eval(self.eg_edges.to_json(orient='records')),
-					   'graph_rules': "teg" # self.event_graph_rules, # omitted as function is not serialisable.
+					   'graph_rules': "teg", # self.event_graph_rules, # omitted as function is not serialisable.
+					   'event_pair_processed': self.event_pair_processed
 					   }
 
 			with open(fp, 'w', encoding='utf-8') as file:
