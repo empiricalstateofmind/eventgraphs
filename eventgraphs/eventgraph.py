@@ -88,7 +88,7 @@ class EventGraph(object):
 			EventGraph
 		"""
 
-		return cls(events=events, graph_rules=graph_rules, **kwargs)
+		return cls(events=pd.DataFrame(events), graph_rules=graph_rules, **kwargs)
 
 	@classmethod # Not needed
 	def from_filter(cls, events, graph_rules):
@@ -454,6 +454,10 @@ class EventGraph(object):
 			list: A list of EventGraph objects corresponding to the connected components
 				  of the original EventGraph
 		"""
+
+		if not hasattr(self.events_meta, 'component'):
+			self.connected_components_indices()
+
 		cpts = defaultdict(list)
 		for ix, comp in self.events_meta.component.items():
 		    cpts[comp].append(ix)
