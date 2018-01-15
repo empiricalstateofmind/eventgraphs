@@ -2,7 +2,11 @@ def basic_event_processor(e1,e2):
 	"""
 	   
 	"""
-	dt = e2.time - e1.time
+
+	if hastattr(e1, 'duration'):
+		dt = e2.time - (e1.time + e1.duration)
+	else:
+		dt = e2.time - e1.time
 	return True, dt
 
 temporal_event_graph = {'event_processor':basic_event_processor,
@@ -24,7 +28,10 @@ def path_finding_event_processor(e1,e2):
 	"""
 	"""
 
-	dt = e2.time - e1.time
+	if hastattr(e1, 'duration'):
+		dt = e2.time - (e1.time + e1.duration)
+	else:
+		dt = e2.time - e1.time
 
 	if len(e2.target) == 0:
 		return False, dt
