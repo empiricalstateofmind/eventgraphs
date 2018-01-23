@@ -54,7 +54,11 @@ class EventGraph(object):
 	"""
 
 	# TO DO, along with other magic methods where needed.
-	#def __repr__(self):
+	def __repr__(self):
+		status = 'built' if hasattr(self, 'eg_edges') else 'unbuilt'		
+		return "<EventGraph with {} nodes and {} events (status: {})>".format(self.N, 
+																			  self.M,
+																			  status)
 
 	def __len__(self):
 		return self.M
@@ -90,18 +94,6 @@ class EventGraph(object):
 
 		return cls(events=pd.DataFrame(events), graph_rules=graph_rules, **kwargs)
 
-	@classmethod # Not needed
-	def from_filter(cls, events, graph_rules):
-		"""
-		Create an EventGraph from a built graph by filtering the edges.
-
-		Input:
-
-		Returns:
-			EventGraph
-		"""
-		raise NotImplementedError
-
 	@classmethod
 	def from_file(cls, filepath):
 		"""
@@ -134,7 +126,10 @@ class EventGraph(object):
 			self.events_meta = pd.DataFrame(index=self.events.index)
 		
 		self.ne_incidence = None
+		self.oe_incidence = None
 		self.ne_matrix = None
+		self.oe_matrix = None
+		self.eg_matrix = None
 
 		# This will now give the index of the event pair (edge) in the event graph
 		self.event_pair_processed = kwargs.get('event_pair_processed',
@@ -222,19 +217,25 @@ class EventGraph(object):
 		if self.ne_incidence is None:
 			self._generate_node_event_incidence()
 
-		# If nodes are not integers or are not indexed from 0, then we need to create a mapping.
+		if not hasattr(self, 'event_map'):
+			self.event_map = self.events.reset_index(drop=False)['index']
+		if not hasattr(self, 'node_map'):			
+			self.node_map = pd.Series(sorted([x for x in self.ne_incidence.keys()]))
 		
+		inv_event_map = pd.Series(self.event_map.index, index=self.event_map)
+		inv_node_map = pd.Series(self.node_map.index, index=self.node_map)
+	
 		rows = []
 		cols = []
 		for node, events in self.ne_incidence.items():
 			for event in events:
-				rows.append(node)
-				cols.append(event)
+				rows.append(inv_node_map[node])
+				cols.append(inv_event_map[event])
 		data = np.ones_like(rows)
 		self.ne_matrix = csc_matrix((data, (rows, cols)), dtype=bool)
 		return self.ne_matrix
 	
-	def _generate_eg_matrix(self):
+	def _generate_eg_matrix(self, binary=False):
 		"""
 	
 		Input:
@@ -243,19 +244,27 @@ class EventGraph(object):
 			scipy.sparse.csc_matrix
 		"""
 		
+		if not hasattr(self, 'event_map'):
+			self.event_map = self.events.reset_index(drop=False)['index']
+
+		inv_event_map = pd.Series(self.event_map.index, index=self.event_map)
+
 		# Make a sparse EG matrix
 		rows = []
 		cols = []
 		data = []
 		for ix, edge in self.eg_edges.iterrows():
-			rows.append(edge.source)
-			cols.append(edge.target)
+			rows.append(inv_event_map[edge.source])
+			cols.append(inv_event_map[edge.target])
 			data.append(edge.delta)
+		if binary:
+			data = [1 for d in data]
 		self.eg_matrix = csc_matrix((data, (rows, cols)), 
 									shape=(self.M,self.M), 
 									dtype=int)
 		return self.eg_matrix
 	
+	# Shouldn't be hidden
 	def _build(self, verbose=False):
 		"""
 		Builds the event graph from event sequence.
