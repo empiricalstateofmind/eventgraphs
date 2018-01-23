@@ -1,3 +1,5 @@
+from collections.abc import Iterable
+
 def basic_event_processor(e1,e2):
 	"""
 	   
@@ -36,10 +38,17 @@ def path_finding_event_processor(e1,e2):
 	if len(e2.target) == 0:
 		return False, dt
 
-	# Issues with whether we have lists or strings (need to decide if we sanitize earlier)
-		
-	for node in e1.target:
-		if node in e2.source:
+	if isinstance(e1.target, str) or isinstance(e1.target, int):
+		targets = [e1.target]
+	else:
+		targets = e1.target
+	if isinstance(e2.source, str) or isinstance(e2.source, int):
+		sources = [e2.source]
+	else:
+		sources = e2.source	
+
+	for node in targets:
+		if node in sources:
 			return True, dt
 
 	return False, dt
