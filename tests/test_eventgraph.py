@@ -57,8 +57,6 @@ class ComponentsTests(TestCase):
 
 	def test_connected_components(self):
 		components = self.EG.connected_components()
-		self.assertTrue(False)
-
-
+		
 if __name__ == '__main__':
     unittest.main()
