@@ -127,6 +127,11 @@ class EventGraph(object):
 		if not isinstance(self.events, pd.DataFrame):
 			raise BadInputError("Events must be a DataFrame ({} passed), or passed through classmethods.".format(type(self.events)))
 
+		self.directed = True
+		if 'target' not in self.events.columns:
+			self.events['target'] = np.empty((len(self.events), 0)).tolist()
+			self.directed = False # Efficiency savings to be had if we treat seperately.
+
 		if 'events_meta' in kwargs.keys():
 			self.events_meta = kwargs['events_meta']
 		else:
@@ -168,7 +173,6 @@ class EventGraph(object):
 
 		self.M = len(self.events)
 		self.N = len(self.ne_incidence)
-		self.directed = None # Efficiency savings to be had if we treat seperately.
 
 		build_on_creation = kwargs.get('build_on_creation', False)
 		if build_on_creation:
@@ -389,7 +393,7 @@ class EventGraph(object):
 			if verbose and ix%50==0: print( ix, '/', total_edges, end='\r', flush=True)
 			e1 = self.events.loc[row.source][columns]
 			e2 = self.events.loc[row.target][columns] 
-			motif = Motif(e1,e2,condensed)
+			motif = Motif(e1,e2,condensed, self.directed)
 			motifs[ix] = str(motif) # We'll just work with the string for now
 
 		self.eg_edges['motif'] = pd.Series(motifs)

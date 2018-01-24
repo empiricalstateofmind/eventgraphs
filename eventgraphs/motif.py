@@ -3,9 +3,10 @@ from collections.abc import Iterable
 class Motif(object):
 
 
-	def __init__(self,e1,e2, condensed):
+	def __init__(self,e1,e2, condensed, directed):
 		"""
 		"""
+		self.directed = directed
 
 		for s,nodes in zip(['U1', 'U2', 'V1', 'V2'],
 					   [e1[0], e2[0], e1[1], e2[1]]):
@@ -65,11 +66,15 @@ class Motif(object):
 		string = ''
 		for ix, entry in enumerate(self._motif[:3]):
 			string += icons[ix]*entry
-		string +='|'
-		for ix, entry in enumerate(self._motif[3:6]):
-			string += icons[ix]*entry
+
+		if self.directed: 
+			string +='|'
+			for ix, entry in enumerate(self._motif[3:6]):
+				string += icons[ix]*entry
+			
 		if len(self._motif) == 8:
 			# We can shorten this or alter it.
 			string += " ({},{})".format(self._motif[-2][0],
-										self._motif[-1][0])    
+										self._motif[-1][0])
+
 		return string
