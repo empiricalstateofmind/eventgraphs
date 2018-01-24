@@ -483,9 +483,17 @@ class EventGraph(object):
 		for ix, comp in self.events_meta.component.items():
 		    cpts[comp].append(ix)
 
-		# Do we want to do some sorting and enumeration of components?
+		cpts_edges = defaultdict(list)
+		for ix, row in self.eg_edges.iterrows():
+		    c1 = self.events_meta.component[row.source]
+		    c2 = self.events_meta.component[row.target]
+		    if c1 == c2:
+		        cpts_edges[c1].append(ix)
 
-		cpts = sorted([self.filter_events(events) for events in cpts.values()], 
+		# Do we want to do some sorting and enumeration of components?
+		# Currently the index does not match the meta table if we sort.
+
+		cpts = sorted([self.filter_events(events, cpts_edges[comp]) for comp, events in cpts.items()], 
 					  key=lambda x: len(x),
 					  reverse=True)
 		return cpts
@@ -522,7 +530,7 @@ class EventGraph(object):
 
 		return self.__class__(**payload)
 
-	def filter_events(self, event_indices):
+	def filter_events(self, event_indices, edge_indices=None):
 		"""
 		Create a new event graph from a subset of events.
 
@@ -539,12 +547,16 @@ class EventGraph(object):
 		events_meta = self.events_meta.loc[event_indices]
 
 
-		# This may be slow.
-		event_pair_processed = {row.source:{row.target: ix} for ix, row in self.eg_edges.iterrows() \
-								if (row.source in events.index) and (row.target in events.index)}
+		# This is slow if edge_indices is not passed through.
+		if edge_indices is None:
+			event_pair_processed = {row.source:{row.target: ix} for ix, row in self.eg_edges.iterrows() \
+									if (row.source in events.index) and (row.target in events.index)}
 
-		edges_to_keep = [val for e1 in event_pair_processed.values() for val in e1.values()]
-		eg_edges = self.eg_edges.loc[edges_to_keep] 
+			edges_to_keep = [val for e1 in event_pair_processed.values() for val in e1.values()]
+			eg_edges = self.eg_edges.loc[edges_to_keep] 
+		else:
+			eg_edges = self.eg_edges.loc[edge_indices]
+			event_pair_processed = {row.source:{row.target: ix} for ix, row in eg_edges.iterrows()}
 
 		payload = {'eg_edges': eg_edges,
 		   'events': events,
