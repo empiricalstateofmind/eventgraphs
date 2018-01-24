@@ -527,7 +527,7 @@ class EventGraph(object):
 		Create a new event graph from a subset of events.
 
 		If it's connected components, our pruning of the eg_edges is simpler, but we want 
-		to be generali if possible.
+		to be general if possible.
 
 		Input:
 
@@ -538,23 +538,19 @@ class EventGraph(object):
 		events = self.events.loc[event_indices]
 		events_meta = self.events_meta.loc[event_indices]
 
-		# This may be slow.
-		# Possibly make a new version of event_pair_processed first and
-		# then pass it into the payload.
-		# This would allow for repeated filtering (currently not possible!)
-		edges_to_keep = []
-		for ix_one in events.index:
-		    keepers = [edge_ix for ix_two, edge_ix in self.event_pair_processed.get(ix_one,{}).items() if ix_two in events.index]
-		    edges_to_keep.extend(keepers)
 
-		#return self.eg_edges, edges_to_keep
+		# This may be slow.
+		event_pair_processed = {row.source:{row.target: ix} for ix, row in self.eg_edges.iterrows() \
+								if (row.source in events.index) and (row.target in events.index)}
+
+		edges_to_keep = [val for e1 in event_pair_processed.values() for val in e1.values()]
 		eg_edges = self.eg_edges.loc[edges_to_keep] 
 
 		payload = {'eg_edges': eg_edges,
 		   'events': events,
 		   'events_meta': events_meta,
 		   'graph_rules': self.event_graph_rules,
-		   'event_pair_processed': self.event_pair_processed
+		   'event_pair_processed': event_pair_processed
 		   }
 
 		return self.__class__(**payload)
