@@ -16,7 +16,7 @@ def basic_event_processor(e1,e2):
 		return False, dt
 
 temporal_event_graph = {'event_processor':basic_event_processor,
-						'subsequential_only':True,
+						'subsequential':True,
 						'delta_cutoff':1e9,
 						'join_on_object':False,
 						'event_object_processor':None
@@ -24,7 +24,7 @@ temporal_event_graph = {'event_processor':basic_event_processor,
 
 
 general_event_graph = {'event_processor':basic_event_processor,
-						'subsequential_only':False,
+						'subsequential':False,
 						'delta_cutoff':1e9,
 						'join_on_object':False,
 						'event_object_processor':None
@@ -59,7 +59,7 @@ def path_finding_event_processor(e1,e2):
 
 
 path_finder_graph = {'event_processor':path_finding_event_processor,
-						'subsequential_only':False,
+						'subsequential':False,
 						'delta_cutoff':1e9,
 						'join_on_object':False,
 						'event_object_processor':None

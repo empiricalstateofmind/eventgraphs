@@ -43,7 +43,6 @@ class EventGraph(object):
 
 	EventGraph.from_pandas_eventlist() (default)
 	EventGraph.from_dict_eventlist()
-	EventGraph.from_filter()
 	EventGraph.from_file()
 
 	Example:
@@ -304,7 +303,7 @@ class EventGraph(object):
 			if verbose and count%50==0: print(count, '/', self.N, end='\r', flush=True)
 			for ix, event_one in enumerate(events): 
 
-				for event_two in events[ix+1:]:
+				for count, event_two in enumerate(events[ix+1:]):
 
 					if self.event_pair_processed[event_one][event_two]:
 						pass
@@ -325,8 +324,9 @@ class EventGraph(object):
 
 					# if subsequent event only then break 
 					# Can extend our rules so that we can do 'next X events only'.
-					if self.event_graph_rules['subsequential_only']:
-						break
+					if self.event_graph_rules['subsequential']:
+						if count + 1 == self.event_graph_rules['subsequential']:
+							break
 
 		self.eg_edges = pd.DataFrame(eg_edges, columns=['source','target', 'delta'])
 
@@ -367,8 +367,9 @@ class EventGraph(object):
 
 					# if subsequent event only then break 
 					# Can extend our rules so that we can do 'next X events only'.
-					if self.event_graph_rules['subsequential_only']:
-						break
+					if self.event_graph_rules['subsequential']:
+						if count + 1 == self.event_graph_rules['subsequential']:
+							break
 
 		if self.eg_edges is not None:
 			new_edges = pd.DataFrame(eg_edges, columns=['source','target', 'delta'])
