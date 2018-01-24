@@ -9,7 +9,11 @@ def basic_event_processor(e1,e2):
 		dt = e2.time - (e1.time + e1.duration)
 	else:
 		dt = e2.time - e1.time
-	return True, dt
+
+	if dt > 0:
+		return True, dt
+	else:
+		return False, dt
 
 temporal_event_graph = {'event_processor':basic_event_processor,
 						'subsequential_only':True,
