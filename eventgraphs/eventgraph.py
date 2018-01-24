@@ -19,6 +19,11 @@ from .motif import Motif
 
 
 class NotImplementedError(BaseException):
+	"""Returns when a function is not implemented."""
+	pass
+
+class BadInputError(BaseException):
+	"""Returns when data input is not in the correct format."""
 	pass
 
 class EventGraph(object):
@@ -119,6 +124,8 @@ class EventGraph(object):
 		# This massively needs tidying!
 		
 		self.events = kwargs['events']
+		if not isinstance(self.events, pd.DataFrame):
+			raise BadInputError("Events must be a DataFrame ({} passed), or passed through classmethods.".format(type(self.events)))
 
 		if 'events_meta' in kwargs.keys():
 			self.events_meta = kwargs['events_meta']
@@ -130,10 +137,6 @@ class EventGraph(object):
 		self.ne_matrix = None
 		self.oe_matrix = None
 		self.eg_matrix = None
-
-		# This will now give the index of the event pair (edge) in the event graph
-		self.event_pair_processed = kwargs.get('event_pair_processed',
-											   defaultdict(lambda: defaultdict(bool)))
 
 		if 'rules' in kwargs.keys():
 			self.event_graph_rules = kwargs['graph_rules']
@@ -152,6 +155,14 @@ class EventGraph(object):
 		
 		if 'eg_edges' in kwargs.keys():
 			self.eg_edges = kwargs['eg_edges']
+
+		# This will now give the index of the event pair (edge) in the event graph
+		built = kwargs.get('built', False)
+		if built:
+			self.event_pair_processed = {row.source:{row.target: ix} for ix, row in self.eg_edges.iterrows()}
+		else:
+			self.event_pair_processed = kwargs.get('event_pair_processed',
+											   defaultdict(lambda: defaultdict(bool)))
 
 		self._generate_node_event_incidence()
 
@@ -568,7 +579,7 @@ class EventGraph(object):
 					   'events_meta': ast.literal_eval(self.events_meta.to_json(orient='records')),
 					   'eg_edges': ast.literal_eval(self.eg_edges.to_json(orient='records')),
 					   'graph_rules': "teg", # self.event_graph_rules, # omitted as function is not serialisable.
-					   'event_pair_processed': self.event_pair_processed
+					   'built': True
 					   }
 
 			with open(fp, 'w', encoding='utf-8') as file:
