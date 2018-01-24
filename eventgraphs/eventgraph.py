@@ -171,16 +171,25 @@ class EventGraph(object):
 
 		self._generate_node_event_incidence()
 
-		self.M = len(self.events)
-		self.N = len(self.ne_incidence)
-
 		build_on_creation = kwargs.get('build_on_creation', False)
 		if build_on_creation:
 			self._build()
 
 		return None
 
-		
+	@property
+	def M(self):
+		return len(self.events)
+
+	@property
+	def N(self):
+		return len(self.ne_incidence)
+
+	@property
+	def D(self):
+		# Currently doesn't care about events with duration.
+		return self.events.time.max() - self.events.time.min()
+
 	def _generate_node_event_incidence(self):
 		"""
 		Creates a node-event incidence dictionary used to build the event graph.
