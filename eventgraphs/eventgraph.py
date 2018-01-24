@@ -13,7 +13,9 @@ import ast
 from .prebuilt import PREBUILT
 from .motif import Motif
 
-# 1. There are issues with events and node names that are not indexed from 0 
+# 1. event_pair_processed contains event pairs event if they do not create an edge first time round.
+# 	 Need to check that event pairs are being processes for objects even if they didn't make an edge 
+#	 when we considered node connectivity.
 # 2. Current we can easily remove numpy and pandas dependencies (leaving only scipy and 
 #    inbuilt)
 
@@ -24,6 +26,10 @@ class NotImplementedError(BaseException):
 
 class BadInputError(BaseException):
 	"""Returns when data input is not in the correct format."""
+	pass
+
+class NoObjectError(BaseException):
+	"""Returns when events do not have any objects."""
 	pass
 
 class EventGraph(object):
@@ -174,6 +180,9 @@ class EventGraph(object):
 		if build_on_creation:
 			self._build()
 
+		# Indexes edges of the eventgraph as we create them.
+		self._edge_indexer = 0
+
 		return None
 
 	@property
@@ -223,7 +232,7 @@ class EventGraph(object):
 		for ix, event in self.events.iterrows():
 			if isinstance(event.objects, Iterable) and not isinstance(event.objects, str):
 				for obj in event.objects:
-					self.ne_incidence[obj].append(ix)
+					self.oe_incidence[obj].append(ix)
 			else:
 				self.oe_incidence[event.objects].append(ix)
 					
@@ -297,8 +306,8 @@ class EventGraph(object):
 		Returns:
 			None
 		"""
-		eg_edges = []
-		edge_indexer = 0
+		eg_edges = {}
+
 		for count, events in enumerate(self.ne_incidence.values()):
 			if verbose and count%50==0: print(count, '/', self.N, end='\r', flush=True)
 			for ix, event_one in enumerate(events): 
@@ -312,15 +321,16 @@ class EventGraph(object):
 						e2 = self.events.loc[event_two]
 						connected, dt = self.event_graph_rules['event_processor'](e1,e2)
 
-						self.event_pair_processed[event_one][event_two] = edge_indexer
-						edge_indexer += 1
+						self.event_pair_processed[event_one][event_two] = self._edge_indexer
 
 						# If we want to enforce a dt
 						if dt > self.event_graph_rules['delta_cutoff']:
 							break
 
 						if connected:
-							eg_edges.append((event_one, event_two, dt))
+							self._edge_indexer += 1
+							eg_edges[self._edge_indexer] = (event_one, event_two, dt)
+
 
 					# if subsequent event only then break 
 					# Can extend our rules so that we can do 'next X events only'.
@@ -328,9 +338,15 @@ class EventGraph(object):
 						if count + 1 == self.event_graph_rules['subsequential']:
 							break
 
-		self.eg_edges = pd.DataFrame(eg_edges, columns=['source','target', 'delta'])
+		if hasattr(self,'eg_edges'):
+			new_edges = pd.DataFrame.from_dict(eg_edges, orient='index')
+			new_edges.columns = ['source','target', 'delta']
+			self.eg_edges = pd.concat([self.eg_edges, new_edges], join='inner')
+		else:
+			self.eg_edges = pd.DataFrame.from_dict(eg_edges, orient='index')
+			self.eg_edges.columns = ['source','target', 'delta']
 
-	def _build_from_objects(self):
+	def _build_from_objects(self, verbose=False):
 		"""
 		Builds the event graph using object relations (instead of, of in addition to
 		the node relations)
@@ -340,9 +356,13 @@ class EventGraph(object):
 		Returns:
 			None
 		"""
+
+		if 'objects' not in self.events.columns:
+			raise NoObjectError("Event data must contain 'objects'.")
+
 		self._generate_object_event_incidence()
 
-		eg_edges = []
+		eg_edges = {}
 		for count, events in enumerate(self.oe_incidence.values()):
 			if verbose and count%50==0: print(count, '/', self.N, end='\r', flush=True)
 			for ix, event_one in enumerate(events): 
@@ -356,14 +376,15 @@ class EventGraph(object):
 						e2 = self.events.loc[event_two]
 						connected, dt = self.event_graph_rules['event_object_processor'](e1,e2)
 
-						self.event_pair_processed[event_one][event_two] = True
-
+						self.event_pair_processed[event_one][event_two] = self._edge_indexer
+						
 						# If we want to enforce a dt
 						if dt > self.event_graph_rules['delta_cutoff']:
 							break
 
 						if connected:
-							eg_edges.append((event_one, event_two, dt))
+							self._edge_indexer += 1
+							eg_edges[self._edge_indexer] = (event_one, event_two, dt)
 
 					# if subsequent event only then break 
 					# Can extend our rules so that we can do 'next X events only'.
@@ -371,11 +392,13 @@ class EventGraph(object):
 						if count + 1 == self.event_graph_rules['subsequential']:
 							break
 
-		if self.eg_edges is not None:
-			new_edges = pd.DataFrame(eg_edges, columns=['source','target', 'delta'])
-			self.eg_edges = pd.concat([self.eg_edges, new_edges])
+		if hasattr(self,'eg_edges'):
+			new_edges = pd.DataFrame.from_dict(eg_edges, orient='index')
+			new_edges.columns = ['source','target', 'delta']
+			self.eg_edges = pd.concat([self.eg_edges, new_edges], join='inner')
 		else:
-			self.eg_edges = pd.DataFrame(eg_edges, columns=['source','target', 'delta'])
+			self.eg_edges = pd.DataFrame.from_dict(eg_edges, orient='index')
+			self.eg_edges.columns = ['source','target', 'delta']
 
 	def calculate_edge_motifs(self, edge_type=None, condensed=False, verbose=False):
 		"""
