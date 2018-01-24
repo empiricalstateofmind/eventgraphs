@@ -1,7 +1,8 @@
 import numpy as np
+from string import ascii_lowercase
 
-nevents = 150
-nodes = np.arange(0,100)
+nevents = 50
+nodes = np.arange(0,30)
 
 # Directed events
 directed = []
@@ -48,6 +49,27 @@ for _ in range(nevents):
     t += 1
 
 # Extra columns
-
+extra_columns = []
+t = 0
+for _ in range(nevents):
+    u,v = np.random.choice(nodes, replace=False, size=2)
+    extra_columns.append({'source':u,
+                          'target':v,
+                          'time':t,
+                          'type':'x',
+                          'duration':1,
+                          'content':'hello world'})
+    t += 1
 
 # Non-integer labels
+string_labels = []
+t = 0
+for _ in range(nevents):
+    u,v = np.random.choice(nodes, replace=False, size=2)
+    u = u%26
+    v = v%26
+    string_labels.append({'source':ascii_lowercase[u:u+2],
+                          'target':ascii_lowercase[v:v+2],
+                          'time':t,
+                          })
+    t += 1
