@@ -74,7 +74,7 @@ class Motif(object):
 			
 		if len(self._motif) == 8:
 			# We can shorten this or alter it.
-			string += " ({},{})".format(self._motif[-2][0],
-										self._motif[-1][0])
+			string += " ({},{})".format(self._motif[-2][0]+self._motif[-2][-1],
+										self._motif[-1][0]+self._motif[-1][-1])
 
 		return string
