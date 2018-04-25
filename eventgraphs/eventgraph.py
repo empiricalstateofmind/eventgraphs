@@ -58,7 +58,7 @@ class EventGraph(object):
 
 	References:
 		[1] A. Mellor, The Temporal Event Graph, Jouurnal of Complex Networks (2017) 
-		[2] A. Mellor, Classifying Conversation in Digital Communication, ICWSM (2018)
+		[2] A. Mellor, Classifying Conversation in Digital Communication, EPJ Data Science (2018)
 		[3] A. Mellor, Generalised Event Graphs and Temporal Motifs, In prepartion (2018) 
 
 	"""
@@ -499,6 +499,36 @@ class EventGraph(object):
 
 		self.events_meta['component'] = components
 		return components
+
+	def get_component(self, ix):
+		"""
+		Returns a component of the event graph as an event graph
+
+		Input:
+			ix: Index of component
+
+		Returns:
+			eventgraph: EventGraph of the component
+		"""
+		if not hasattr(self.events_meta, 'component'):
+			self.connected_components_indices()
+		if not hasattr(self.eg_edges, 'component'):
+			self.eg_edges = pd.merge(self.eg_edges, self.events_meta, left_on='source', right_index=True)	
+
+		event_ids = self.events_meta.component==ix
+		events = self.events[event_ids]
+		eg_edges = self.eg_edges[self.eg_edges.component==ix]
+		events_meta = self.events_meta[event_ids]
+		event_pair_processed = {row.source:{row.target: ix} for ix, row in eg_edges.iterrows()}
+
+		payload = {'eg_edges': eg_edges,
+		   'events': events,
+		   'events_meta': events_meta,
+		   'graph_rules': self.event_graph_rules,
+		   'event_pair_processed': event_pair_processed
+		   }
+
+		return payload
 
 	def connected_components(self):
 		"""
