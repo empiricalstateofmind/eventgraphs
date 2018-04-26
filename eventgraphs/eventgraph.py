@@ -421,6 +421,8 @@ class EventGraph(object):
 		"""
 		motifs = {}
 
+		# THIS METHOD CAN BE OPTIMISED USING TABLE JOINS
+
 		# If edge type isnt a single letter we may want to shorten it.
 		if edge_type is None or edge_type not in self.events.columns:
 			columns = ['source', 'target', 'time']
@@ -466,6 +468,7 @@ class EventGraph(object):
 	def draw_graph(self):
 		"""
 		Work in progress
+		THIS METHOD WILL BE MOVED TO eventgraph.plotting
 
 		Input:
 
@@ -504,7 +507,7 @@ class EventGraph(object):
 									  connection='weak',
 									  return_labels=True)[1]
 
-		self.events_meta['component'] = components
+		self.events_meta.loc[:,'component'] = components
 		return components
 
 	def get_component(self, ix):
@@ -535,7 +538,7 @@ class EventGraph(object):
 		   'event_pair_processed': event_pair_processed
 		   }
 
-		return payload
+		return self.__class__(**payload)
 
 	def connected_components(self):
 		"""
