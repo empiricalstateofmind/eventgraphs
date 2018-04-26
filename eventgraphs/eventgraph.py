@@ -568,6 +568,7 @@ class EventGraph(object):
 	def filter_edges(self, delta_lb=None, delta_ub=None, motif_types=None):
 		"""
 		Filter edges based on edge weight (or motif possibly)
+		SUGGEST an inplace keyword
 
 		Input:
 
@@ -604,6 +605,8 @@ class EventGraph(object):
 		If it's connected components, our pruning of the eg_edges is simpler, but we want 
 		to be general if possible.
 
+		SUGGEST an inplace keyword
+
 		Input:
 
 		Returns:
@@ -614,13 +617,21 @@ class EventGraph(object):
 		events_meta = self.events_meta.loc[event_indices]
 
 
-		# This is slow if edge_indices is not passed through.
+		# This should be reasonably quick now that it is table joins.
 		if edge_indices is None:
-			event_pair_processed = {row.source:{row.target: ix} for ix, row in self.eg_edges.iterrows() \
-									if (row.source in events.index) and (row.target in events.index)}
+			eg_edges = pd.merge(self.eg_edges, 
+								events, 
+								left_on='source', 
+								right_index=True, 
+								suffixes=('','_tmp'))[self.eg_edges.columns]
+			eg_edges = pd.merge(eg_edges, 
+								events, 
+								left_on='target', 
+								right_index=True, 
+								suffixes=('','_tmp'))[self.eg_edges.columns]
 
-			edges_to_keep = [val for e1 in event_pair_processed.values() for val in e1.values()]
-			eg_edges = self.eg_edges.loc[edges_to_keep] 
+			event_pair_processed = {row.source:{row.target: ix} for ix, row in eg_edges.iterrows()}
+
 		else:
 			eg_edges = self.eg_edges.loc[edge_indices]
 			event_pair_processed = {row.source:{row.target: ix} for ix, row in eg_edges.iterrows()}
