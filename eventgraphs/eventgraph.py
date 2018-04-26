@@ -128,6 +128,11 @@ class EventGraph(object):
 
 		# This massively needs tidying!
 		
+
+		# SANITISATION
+		# 1. ENSURE EVENTS ARE IN TIME ORDER
+		# 2. 
+
 		self.events = kwargs['events']
 		if not isinstance(self.events, pd.DataFrame):
 			raise BadInputError("Events must be a DataFrame ({} passed), or passed through classmethods.".format(type(self.events)))
@@ -195,8 +200,11 @@ class EventGraph(object):
 
 	@property
 	def D(self):
-		# Currently doesn't care about events with duration.
-		return self.events.time.max() - self.events.time.min()
+		# Requires ordered event table
+		if 'duration' in self.events.columns:
+			return self.events.iloc[-1].time + self.events.iloc[-1].duration - self.events.iloc[0].time
+		else:
+			return self.events.iloc[-1].time - self.events.iloc[0].time
 
 	def _generate_node_event_incidence(self):
 		"""
@@ -468,7 +476,7 @@ class EventGraph(object):
 		try:
 			import matplotlib.pyplot as plt
 		except ImportError:
-			raise ImportError("Matplotlib required for graph drawning.")
+			raise ImportError("Matplotlib required for graph drawing.")
 
 		G = self.create_networkx_graph()
 		plt.figure(figsize=(40,10))
