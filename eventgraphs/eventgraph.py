@@ -441,11 +441,11 @@ class EventGraph(object):
 		self.eg_edges['motif'] = pd.Series(motifs)
 
 
-	def create_networkx_graph(self, include_motif=False):
+	def create_networkx_aggregate_graph(self, edge_colormap=None):
 		"""
 
 		Input:
-			include_motif (bool): Include the motif type as an edge property in the graph [default=False]
+			
 
 		Returns:
 
@@ -455,37 +455,44 @@ class EventGraph(object):
 		except ImportError:
 			raise ImportError("Networkx package required to create graphs.")
 
-		G = nx.DiGraph()
-		if include_motif:
-			edges = [(edge.source,edge.target,{'delta':edge.delta, 'type':str(edge.motif)}) for ix,edge in self.eg_edges.iterrows()]
+		if self.directed:
+			G = nx.DiGraph()
 		else:
-			edges = [(edge.source,edge.target,{'delta':edge.delta}) for ix,edge in self.eg_edges.iterrows()]
+			G = nx.Graph()
 
-		G.add_nodes_from(range(self.N)) # This will break if we dont have reindexed events for subgraphs.
-		G.add_edges_from(edges)
+		if edge_colormap is None:
+			edge_colormap = defaultdict(lambda: 'k')
+
+		for _, event in self.events.iterrows():
+		    if len(event.target) == 0:
+		        G.add_node(event.source)
+		    else:
+		        for target in event.target:
+		            G.add_edge(event.source, target, {'type':event.type, 'color':edge_colormap[event.type]})
+
 		return G
 
-	def draw_graph(self):
+	def create_networkx_event_graph(self, event_colormap=None):
 		"""
-		Work in progress
-		THIS METHOD WILL BE MOVED TO eventgraph.plotting
-
-		Input:
-
-		Returns:
-
 		"""
-		try:
-			import matplotlib.pyplot as plt
+
+		try: 
+			import networkx as nx
 		except ImportError:
-			raise ImportError("Matplotlib required for graph drawing.")
+			raise ImportError("Networkx package required to create graphs.")
 
-		G = self.create_networkx_graph()
-		plt.figure(figsize=(40,10))
-		pos = nx.drawing.nx_pydot.pydot_layout(G, prog='dot')
-		nx.draw_networkx(G, pos=pos)
-		plt.axis('off')
-		return G # Should return axis also
+		G = nx.DiGraph()
+
+		if event_colormap is None:
+			event_colormap = defaultdict(lambda: 'grey')
+
+		for ix, event in self.events.iterrows():
+			G.add_node(ix, {'type': event.type, 'fillcolor': event_colormap[event.type]})
+
+		for _, edge in self.eg_edges.iterrows():
+			G.add_edge(edge.source, edge.target, {'delta':edge.delta, 'motif':edge.motif})
+
+		return G
 		
 	def connected_components_indices(self):
 		"""
