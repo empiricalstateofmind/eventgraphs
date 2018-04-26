@@ -547,9 +547,9 @@ class EventGraph(object):
 
 		return self.__class__(**payload)
 
-	def connected_components(self):
+	def connected_components(self, min_size=None):
 		"""
-		Returns the conneted components of the event graph as a list of
+		Returns the connected components of the event graph as a list of
 		event graphs
 
 		Input:
@@ -563,24 +563,33 @@ class EventGraph(object):
 		if not hasattr(self.events_meta, 'component'):
 			self.connected_components_indices()
 
-		cpts = defaultdict(list)
-		for ix, comp in self.events_meta.component.items():
-		    cpts[comp].append(ix)
+		# cpts = defaultdict(list)
+		# for ix, comp in self.events_meta.component.items():
+		#     cpts[comp].append(ix)
 
-		cpts_edges = defaultdict(list)
-		for ix, row in self.eg_edges.iterrows():
-		    c1 = self.events_meta.component[row.source]
-		    c2 = self.events_meta.component[row.target]
-		    if c1 == c2:
-		        cpts_edges[c1].append(ix)
+		# cpts_edges = defaultdict(list)
+		# for ix, row in self.eg_edges.iterrows():
+		#     c1 = self.events_meta.component[row.source]
+		#     c2 = self.events_meta.component[row.target]
+		#     if c1 == c2:
+		#         cpts_edges[c1].append(ix)
 
-		# Do we want to do some sorting and enumeration of components?
-		# Currently the index does not match the meta table if we sort.
+		# # Do we want to do some sorting and enumeration of components?
+		# # Currently the index does not match the meta table if we sort.
 
-		cpts = sorted([self.filter_events(events, cpts_edges[comp]) for comp, events in cpts.items()], 
-					  key=lambda x: len(x),
-					  reverse=True)
-		return cpts
+		# cpts = sorted([self.filter_events(events, cpts_edges[comp]) for comp, events in cpts.items()], 
+		# 			  key=lambda x: len(x),
+		# 			  reverse=True)
+
+		# Dictionary is ordered, but this fact is not used.
+
+		component_sizes = self.events_meta.component.value_counts()
+		if min_size is not None:
+			component_sizes = component_sizes[component_sizes>=min_size]
+
+		components = {ix:self.get_component(ix) for ix in component_sizes.index}
+
+		return components
 
 	def filter_edges(self, delta_lb=None, delta_ub=None, motif_types=None):
 		"""
