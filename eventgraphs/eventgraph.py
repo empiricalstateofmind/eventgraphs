@@ -304,8 +304,7 @@ class EventGraph(object):
 									dtype=int)
 		return self.eg_matrix
 	
-	# Shouldn't be hidden
-	def _build(self, verbose=False):
+	def build(self, verbose=False):
 		"""
 		Builds the event graph from event sequence.
 
