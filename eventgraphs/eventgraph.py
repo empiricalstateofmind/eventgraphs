@@ -9,6 +9,7 @@ from collections.abc import Iterable
 import json
 import pickle
 import ast
+from copy import copy
 
 from .prebuilt import PREBUILT
 from .motif import Motif
@@ -461,7 +462,7 @@ class EventGraph(object):
 			G = nx.Graph()
 
 		if edge_colormap is None:
-			edge_colormap = defaultdict(lambda: 'k')
+			edge_colormap = defaultdict(lambda: 'black')
 
 		for _, event in self.events.iterrows():
 		    if len(event.target) == 0:
@@ -591,7 +592,7 @@ class EventGraph(object):
 
 		return components
 
-	def filter_edges(self, delta_lb=None, delta_ub=None, motif_types=None):
+	def filter_edges(self, delta_lb=None, delta_ub=None, motif_types=None, inplace=False):
 		"""
 		Filter edges based on edge weight (or motif possibly)
 		SUGGEST an inplace keyword
@@ -615,14 +616,24 @@ class EventGraph(object):
 
 		event_pair_processed = {row.source:{row.target: ix} for ix, row in eg_edges.iterrows()}
 
-		payload = {'eg_edges':eg_edges,
-				   'events':self.events,
-				   'events_meta':self.events_meta,
-				   'graph_rules': self.event_graph_rules,
-				   'event_pair_processed': event_pair_processed
-				   }
+		if inplace:
+			self.eg_edges = eg_edges
+			self.event_pair_processed = event_pair_processed
+			return None
+		else:
+			filtered = copy(self)
+			filtered.eg_edges = eg_edges
+			filtered.event_pair_processed = event_pair_processed
+			return filtered
 
-		return self.__class__(**payload)
+		# payload = {'eg_edges':eg_edges,
+		# 		   'events':self.events,
+		# 		   'events_meta':self.events_meta,
+		# 		   'graph_rules': self.event_graph_rules,
+		# 		   'event_pair_processed': event_pair_processed
+		# 		   }
+
+		# return self.__class__(**payload)
 
 	def filter_events(self, event_indices, edge_indices=None):
 		"""
