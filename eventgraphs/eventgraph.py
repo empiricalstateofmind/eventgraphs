@@ -9,7 +9,7 @@ from collections.abc import Iterable
 import json
 import pickle
 import ast
-from copy import copy
+from copy import deepcopy
 
 from .prebuilt import PREBUILT
 from .motif import Motif
@@ -619,7 +619,7 @@ class EventGraph(object):
 			self.event_pair_processed = event_pair_processed
 			return None
 		else:
-			filtered = copy(self)
+			filtered = deepcopy(self)
 			filtered.eg_edges = eg_edges
 			filtered.event_pair_processed = event_pair_processed
 			return filtered
