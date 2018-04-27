@@ -76,7 +76,7 @@ def calculate_component_distribution_over_delta(eventgraph, delta_range, normali
 	largest_component = {}
 	component_distributions = {}
 	for dt in delta_range[::-1]:
-		eg_matrix.data = np.where(eg_matrix.data < dt, eg_matrix.data, 0)
+		eg_matrix.data = np.where(eg_matrix.data <= dt, eg_matrix.data, 0)
 		eg_matrix.eliminate_zeros()
 		component_ixs = csg.connected_components(eg_matrix, 
 										  directed=True,

@@ -608,7 +608,7 @@ class EventGraph(object):
 		if delta_lb is not None:
 			eg_edges = eg_edges[eg_edges.delta > delta_lb]
 		if delta_ub is not None:
-			eg_edges = eg_edges[eg_edges.delta < delta_ub]
+			eg_edges = eg_edges[eg_edges.delta <= delta_ub]
 		if motif_types is not None:
 			eg_edges = eg_edges[eg_edges.motif.isin(motif_types)]
 
