@@ -546,7 +546,7 @@ class EventGraph(object):
 
 		return self.__class__(**payload)
 
-	def connected_components(self, min_size=None):
+	def connected_components(self, min_size=None, top=None):
 		"""
 		Returns the connected components of the event graph as a list of
 		event graphs
@@ -558,6 +558,9 @@ class EventGraph(object):
 			list: A list of EventGraph objects corresponding to the connected components
 				  of the original EventGraph
 		"""
+
+		if (min_size is not None) and (top is not None):
+			raise Exception("Please specify only one of 'min_size' or 'top'")
 
 		if not hasattr(self.events_meta, 'component'):
 			self.connected_components_indices()
@@ -585,6 +588,8 @@ class EventGraph(object):
 		component_sizes = self.events_meta.component.value_counts()
 		if min_size is not None:
 			component_sizes = component_sizes[component_sizes>=min_size]
+		if top is not None:
+			component_sizes = component_sizes.nlargest(top)
 
 		components = {ix:self.get_component(ix) for ix in component_sizes.index}
 
