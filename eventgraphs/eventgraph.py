@@ -465,8 +465,10 @@ class EventGraph(object):
 			edge_colormap = defaultdict(lambda: 'black')
 
 		for _, event in self.events.iterrows():
-		    if len(event.target) == 0:
+		    if (len(event.target) == 0) and isinstance(event.target, Iterable):
 		        G.add_node(event.source)
+		    elif isinstance(event.target, str) or isinstance(event.target, int):
+		    	G.add_edge(event.source, event.target, {'type':event.type, 'color':edge_colormap[event.type]})
 		    else:
 		        for target in event.target:
 		            G.add_edge(event.source, target, {'type':event.type, 'color':edge_colormap[event.type]})
@@ -497,11 +499,7 @@ class EventGraph(object):
 		
 	def connected_components_indices(self):
 		"""
-		Should this be a property? How can we do this?
-
-		Perhaps have two functions (connected component indices (this one))
-		and a function that returns a list of EventGraphs (subgraphs)
-
+		
 		Input:
 
 		Returns:
