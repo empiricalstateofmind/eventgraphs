@@ -42,21 +42,27 @@ def plot_aggregate_graph(eventgraph, edge_colormap=None, display=True, **kwargs)
 	
 	return A
 
-def plot_event_graph(eventgraph, event_colormap=None, remove_singles=False):
+def plot_event_graph(eventgraph, event_colormap=None, remove_singles=False, **kwargs):
 	""""""
+
+	# This needs changing.
+	if 'size' not in kwargs.keys():
+		kwargs['size']=10
+	if 'ratio' not in kwargs.keys():
+		kwargs['ratio']=0.5
 
 	G = eventgraph.create_networkx_event_graph(event_colormap)
 
 	nx.set_node_attributes(G, 'circle', 'shape')
 
-	nx.set_node_attributes(G, 8, 'fontsize')
+	nx.set_node_attributes(G, 'fontsize', 8)
 
-	nx.set_node_attributes(G, 'filled', 'style')
-	nx.set_node_attributes(G, 'true', 'fixedsize')
-	nx.set_node_attributes(G, 0.3, 'width')
+	nx.set_node_attributes(G, 'style', 'filled')
+	nx.set_node_attributes(G, 'fixedsize', 'true')
+	nx.set_node_attributes(G, 'width', 0.3)
 
-	nx.set_edge_attributes(G, "open", 'arrowhead') # normal open halfopen vee
-	nx.set_edge_attributes(G, "bold", 'style' )
+	nx.set_edge_attributes(G, 'arrowhead', 'open') # normal open halfopen vee
+	nx.set_edge_attributes(G, 'style', 'bold')
 
 	if remove_singles:
 		ins = nx.in_degree_centrality(G)
@@ -68,12 +74,12 @@ def plot_event_graph(eventgraph, event_colormap=None, remove_singles=False):
 
 	A.set('layout','dot')
 
-	A.set('size', 200)
-	A.set('ratio', 0.4)
+	A.set('size', kwargs['size'])
+	A.set('ratio', kwargs['ratio'])
 	A.set('dpi', 500)
 	A.set('dim', 2)
 	A.set('overlap', 'false')
-	A.set('minlen', 2) #dot only
+	A.set('minlen', 2) # dot only
 
 	A.set('mode', 'spring')
 	A.set('K', 1)
