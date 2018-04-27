@@ -1,5 +1,3 @@
-from collections.abc import Iterable
-
 def basic_event_processor(e1,e2):
 	"""
 	   
@@ -24,11 +22,11 @@ temporal_event_graph = {'event_processor':basic_event_processor,
 
 
 general_event_graph = {'event_processor':basic_event_processor,
-						'subsequential':False,
-						'delta_cutoff':1e9,
-						'join_on_object':False,
-						'event_object_processor':None
-						}
+					   'subsequential':False,
+					   'delta_cutoff':1e9,
+					   'join_on_object':False,
+					   'event_object_processor':None
+					   }
 
 def path_finding_event_processor(e1,e2):
 	"""
@@ -59,11 +57,11 @@ def path_finding_event_processor(e1,e2):
 
 
 path_finder_graph = {'event_processor':path_finding_event_processor,
-						'subsequential':False,
-						'delta_cutoff':1e9,
-						'join_on_object':False,
-						'event_object_processor':None
-						}
+					 'subsequential':False,
+					 'delta_cutoff':1e9,
+					 'join_on_object':False,
+					 'event_object_processor':None
+					 }
 
 
 PREBUILT = {'temporal_event_graph': temporal_event_graph,
