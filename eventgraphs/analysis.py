@@ -122,7 +122,7 @@ def calculate_edge_density(G):
 	if N > 1:
 		return len(G.edges())/(N*(N-1))
 	else:
-		return 1
+		return 0
 
 def calculate_clustering_coefficient(G):
 	""" """
@@ -133,7 +133,7 @@ def calculate_clustering_coefficient(G):
 		clustering = nx.cluster.average_clustering(recip)
 		return clustering
 	else:
-		return 1
+		return 0
 
 def calculate_reciprocity_ratio(G):
 	""" """
@@ -143,7 +143,7 @@ def calculate_reciprocity_ratio(G):
 		recip_ratio = 2*len(recip.edges())/len(G.edges())
 		return recip_ratio
 	else:
-		return 1
+		return 0
 
 def calculate_degree_assortativity(G):
 	""" Calculates a 'fake' degree assortivitity. To be ironed out as a concept. """
