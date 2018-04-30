@@ -690,6 +690,17 @@ class EventGraph(object):
 
 		return self.__class__(**payload)
 
+	def add_cluster_assignments(self, cluster_assignments):
+		""" """
+
+		def cluster_or_zero(x, cluster_assignments):
+			""""""
+			if x in cluster_assignments.index:
+				return cluster_assignments[x]
+			else:
+				return 0
+
+		self.events_meta['cluster'] = self.events_meta['component'].apply(lambda x: cluster_or_zero(x, cluster_assignments))
 
 	def save(self, fp, method='json'):
 		"""
