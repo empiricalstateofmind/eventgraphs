@@ -1,5 +1,7 @@
 from collections.abc import Iterable
 
+# Check that undirected motifs are being processed correctly.
+
 class Motif(object):
 
 

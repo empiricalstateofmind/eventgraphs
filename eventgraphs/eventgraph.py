@@ -6,6 +6,8 @@ from scipy.sparse import csgraph as csg
 
 from collections import defaultdict
 from collections.abc import Iterable
+from itertools import product
+
 import json
 import pickle
 import ast
@@ -408,7 +410,8 @@ class EventGraph(object):
 			self.eg_edges = pd.DataFrame.from_dict(eg_edges, orient='index')
 			self.eg_edges.columns = ['source','target', 'delta']
 
-	def calculate_edge_motifs(self, edge_type=None, condensed=False, verbose=False):
+
+	def calculate_edge_motifs(self, edge_type=None, condensed=False):
 		"""
 		Calculates the motifs for edges
 		Add a column to use as edge type
@@ -416,30 +419,32 @@ class EventGraph(object):
 		Input:
 			edge_type (str):
 			condensed (bool):
-			verbose (bool): 
 		Returns:
 			None
 		"""
-		motifs = {}
 
-		# THIS METHOD CAN BE OPTIMISED USING TABLE JOINS
-
-		# If edge type isnt a single letter we may want to shorten it.
 		if edge_type is None or edge_type not in self.events.columns:
 			columns = ['source', 'target', 'time']
 		else:
 			columns = ['source', 'target', 'time', edge_type]
 
-		if verbose:
-			total_edges = len(self.eg_edges)
-		for ix, row in self.eg_edges.iterrows():
-			if verbose and ix%50==0: print( ix, '/', total_edges, end='\r', flush=True)
-			e1 = self.events.loc[row.source][columns]
-			e2 = self.events.loc[row.target][columns] 
-			motif = Motif(e1,e2,condensed, self.directed)
-			motifs[ix] = str(motif) # We'll just work with the string for now
+		def find_motif(x, columns, condensed=False, directed=False):
+		    """Test function (think about duration)"""
+		    e1 = tuple(x['{}_s'.format(c)] for c in columns)
+		    e2 = tuple(x['{}_t'.format(c)] for c in columns)
+		    return str(Motif(e1,e2, condensed, directed))
 
-		self.eg_edges['motif'] = pd.Series(motifs)
+		temp = pd.merge(pd.merge(self.eg_edges[['source','target']], 
+								 self.events, 
+								 left_on='source', 
+								 right_index=True, 
+								 suffixes=('_d',''))[['target_d'] + columns],
+			            self.events,
+			            left_on='target_d',
+			            right_index=True,
+			            suffixes=('_s','_t'))[["{}_{}".format(field,code) for field,code in product(columns,('s','t'))]]
+
+		self.eg_edges['motif'] = temp.apply(lambda x: find_motif(x, columns, condensed=condensed, directed=self.directed), axis=1)
 
 
 	def create_networkx_aggregate_graph(self, edge_colormap=None):
