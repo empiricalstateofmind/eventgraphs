@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import networkx as nx
 from scipy.sparse import linalg as spla
 from scipy.sparse import csgraph as csg
 
@@ -88,3 +89,83 @@ def calculate_component_distribution_over_delta(eventgraph, delta_range, normali
 	largest_component = pd.Series(largest_component)
 
 	return component_distributions, largest_component
+
+def calculate_motif_entropy(eventgraph, normalize=False):
+	""" Calculate the motif entropy """
+	motifs = calculate_motif_distribution(eventgraph)
+	motif_entropy = -sum([p*np.log(p) for p in motifs.values if p>0])
+	return motif_entropy
+
+def calculate_iet_entropy(eventgraph):
+	""" """
+	iets = calculate_iet_distribution(eventgraph, cumulative=True)
+	max_iet = max(iets.index)
+	if max_iet > 0:
+		iets.index = [i/max_iet for i in iets.index]
+	divisions = 10000
+	iets = iets.reindex(np.arange(0,1,divisions), method='nearest')
+	iet_entropy = -sum([(1/(divisions-1))*val*np.log2(val) for val in iets.values if val !=0 ])
+	return iet_entropy
+
+def calculate_activity(eventgraph, unit=1):
+	""" """
+	duration = eventgraph.D
+	if duration==0: 
+		activity = np.inf
+	else:
+		activity = (len(eventgraph.events)/duration)*unit
+	return activity
+
+def calculate_edge_density(G):
+	""" """
+	N = len(G.nodes())
+	if N > 1:
+		return len(G.edges())/(N*(N-1))
+	else:
+		return 1
+
+def calculate_clustering_coefficient(G):
+	""" """
+
+	N = len(G.nodes())
+	if N > 1:
+		recip = G.to_undirected(reciprocal=False)
+		clustering = nx.cluster.average_clustering(recip)
+		return clustering
+	else:
+		return 1
+
+def calculate_reciprocity_ratio(G):
+	""" """
+	N = len(G.nodes())
+	if N > 1:
+		recip = G.to_undirected(reciprocal=True)
+		recip_ratio = 2*len(recip.edges())/len(G.edges())
+		return recip_ratio
+	else:
+		return 1
+
+def calculate_degree_assortativity(G):
+	""" Calculates a 'fake' degree assortivitity. To be ironed out as a concept. """
+
+	N = len(G.nodes())
+	if N <= 1:
+		return {'assort_ii':0,
+				'assort_io':0,
+				'assort_oi':0,
+				'assort_oo':0,}
+
+	degrees = pd.DataFrame([(G.out_degree(a), G.out_degree(b), G.in_degree(a), G.in_degree(b)) for a,b in G.edges()],
+						   columns=['o_source', 'o_target', 'i_source', 'i_target'])
+	assorts = {}
+	for alpha, beta in [('o','o'), ('o','i'), ('i','i'), ('i','o')]:
+		c1 = '{}_source'.format(alpha)
+		c2 = '{}_target'.format(beta)
+
+		x = (degrees[c1]-degrees[c2]).mean()
+		if x == 0:
+			assorts['assort_{}{}'.format(alpha,beta)] = 0.0
+		else:
+			assorts['assort_{}{}'.format(alpha,beta)] = x/(degrees[c1]-degrees[c2]).abs().max()
+			
+	return assorts
