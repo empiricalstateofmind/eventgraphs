@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 from collections import defaultdict
 from IPython.display import Image
+import matplotlib.pyplot as plt
 
 def plot_aggregate_graph(eventgraph, edge_colormap=None, display=True, **kwargs):
 	""" 
