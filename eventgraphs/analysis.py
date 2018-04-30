@@ -169,3 +169,19 @@ def calculate_degree_assortativity(G):
 			assorts['assort_{}{}'.format(alpha,beta)] = x/(degrees[c1]-degrees[c2]).abs().max()
 			
 	return assorts
+
+def calculate_cluster_timeseries(eventgraph, interval_width):
+	"""
+	"""
+
+	if 'cluster' not in eventgraph.events_meta.columns:
+		raise Exception("No clusters present. Please run eventgraph.add_cluster_assignments().")
+
+	timeseries = {}
+	for cluster in sorted(eventgraph.events_meta.cluster.unique()):
+	    events = eventgraph.events[eventgraph.events_meta.cluster==cluster]
+	    timeseries[cluster] = events.groupby(by=events.time//interval_width).size()
+	    
+	total = eventgraph.events.groupby(by=eventgraph.events.time//interval_width).size()
+
+	return timeseries, total
