@@ -129,12 +129,18 @@ def similarity(features, metric='euclidean', normalize=True):
     sim = pdist(X, metric)
     return sim
 
-def find_clusters(similarity, kind='ward', criterion='maxclust', max_clusters=4):
+def find_clusters(features, kind='ward', criterion='maxclust', max_clusters=4, **kwargs):
     """"""
-    Z = linkage(similarity, kind)
+
+    sim = similarity(features, **kwargs)
+
+    Z = linkage(sim, kind)
     clusters = fcluster(Z, max_clusters, criterion='maxclust')
-    
+
     cluster_centers = pd.DataFrame({cluster:features.loc[clusters==cluster].mean() for cluster in range(1, max_clusters+1)})
+
+    clusters = pd.Series({f:c for f,c in zip(features.index, clusters)})
+    
     return clusters, cluster_centers
 
 def assign_to_cluster(observation, cluster_centers):
