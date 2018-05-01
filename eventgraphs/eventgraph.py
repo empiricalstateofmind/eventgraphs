@@ -16,7 +16,7 @@ from copy import deepcopy
 from .prebuilt import PREBUILT
 from .motif import Motif
 
-# 1. event_pair_processed contains event pairs event if they do not create an edge first time round.
+# 1. _event_pair_processed contains event pairs event if they do not create an edge first time round.
 # 	 Need to check that event pairs are being processes for objects even if they didn't make an edge 
 #	 when we considered node connectivity.
 # 2. Current we can easily remove numpy and pandas dependencies (leaving only scipy and 
@@ -57,7 +57,7 @@ class EventGraph(object):
 	Example:
 	events = [{'source': 0, 'target':1, 'time':1, 'type':'A'},
 			  {'source': 1, 'target':2, 'time':3, 'type':'B'}]
-	eg = EventGraph.from_json_eventlist(events, graph_rules='teg')
+	eg = EventGraph.from_dict_eventlist(events, graph_rules='teg')
 
 	References:
 		[1] A. Mellor, The Temporal Event Graph, Jouurnal of Complex Networks (2017) 
@@ -84,7 +84,7 @@ class EventGraph(object):
 		Input:
 			events (pd.DataFrame): Table of temporal events
 			graph_rules (str or dict): Rule set to build the event graph. Currently implemented
-			is ['teg', 'eg', 'pfg']. See prebuilt.py for custom schema.
+									   are ['teg', 'eg', 'pfg']. See prebuilt.py for custom schema.
 					
 		Returns:
 			EventGraph
@@ -99,7 +99,7 @@ class EventGraph(object):
 		Input:
 			events (list): List of events of the minimal form {'source': X, 'target': X, 'time': X}.
 			graph_rules (str or dict): Rule set to build the event graph. Currently implemented
-			is ['teg', 'eg', 'pfg']. See prebuilt.py for custom schema.
+									   are ['teg', 'eg', 'pfg']. See prebuilt.py for custom schema.
 					
 		Returns:
 			EventGraph
@@ -177,9 +177,9 @@ class EventGraph(object):
 		# This will now give the index of the event pair (edge) in the event graph
 		built = kwargs.get('built', False)
 		if built:
-			self.event_pair_processed = {row.source:{row.target: ix} for ix, row in self.eg_edges.iterrows()}
+			self._event_pair_processed = {row.source:{row.target: ix} for ix, row in self.eg_edges.iterrows()}
 		else:
-			self.event_pair_processed = kwargs.get('event_pair_processed',
+			self._event_pair_processed = kwargs.get('_event_pair_processed',
 											   defaultdict(lambda: defaultdict(bool)))
 
 		self._generate_node_event_incidence()
@@ -195,15 +195,17 @@ class EventGraph(object):
 
 	@property
 	def M(self):
+		""" Number of events in the event graph."""
 		return len(self.events)
 
 	@property
 	def N(self):
+		""" Number of nodes in the event graph."""
 		return len(self.ne_incidence)
 
 	@property
 	def D(self):
-		# Requires ordered event table
+		""" Duration of the event graph (requires ordered event table). """
 		if 'duration' in self.events.columns:
 			return self.events.iloc[-1].time + self.events.iloc[-1].duration - self.events.iloc[0].time
 		else:
@@ -250,6 +252,9 @@ class EventGraph(object):
 	def _generate_node_event_matrix(self):
 		"""
 		Creates a node-event matrix using the node-event incidence dictionary.
+		
+		The matrix A_{ij} = 1 if node i is a participant in event j. 
+		The matrix is of size (N,M).
 
 		Input:
 			None
@@ -280,7 +285,8 @@ class EventGraph(object):
 	
 	def _generate_eg_matrix(self, binary=False):
 		"""
-	
+		Generate an (MxM) matrix of the event graph, weighted by inter-event times.
+
 		Input:
 			None
 		Returns:
@@ -324,14 +330,14 @@ class EventGraph(object):
 
 				for count, event_two in enumerate(events[ix+1:]):
 
-					if self.event_pair_processed[event_one][event_two]:
+					if self._event_pair_processed[event_one][event_two]:
 						pass
 					else:
 						e1 = self.events.loc[event_one]
 						e2 = self.events.loc[event_two]
 						connected, dt = self.event_graph_rules['event_processor'](e1,e2)
 
-						self.event_pair_processed[event_one][event_two] = self._edge_indexer
+						self._event_pair_processed[event_one][event_two] = self._edge_indexer
 
 						# If we want to enforce a dt
 						if dt > self.event_graph_rules['delta_cutoff']:
@@ -379,14 +385,14 @@ class EventGraph(object):
 
 				for event_two in events[ix+1:]:
 
-					if self.event_pair_processed[event_one][event_two]:
+					if self._event_pair_processed[event_one][event_two]:
 						pass
 					else:
 						e1 = self.events.loc[event_one]
 						e2 = self.events.loc[event_two]
 						connected, dt = self.event_graph_rules['event_object_processor'](e1,e2)
 
-						self.event_pair_processed[event_one][event_two] = self._edge_indexer
+						self._event_pair_processed[event_one][event_two] = self._edge_indexer
 						
 						# If we want to enforce a dt
 						if dt > self.event_graph_rules['delta_cutoff']:
@@ -413,12 +419,14 @@ class EventGraph(object):
 
 	def calculate_edge_motifs(self, edge_type=None, condensed=False):
 		"""
-		Calculates the motifs for edges
-		Add a column to use as edge type
+		Calculates the two-event motif for all edges of the event graph.
+
+		Currently events with duration are unsupported.
 
 		Input:
-			edge_type (str):
-			condensed (bool):
+			edge_type (str): Column name for which edge types are to be differentiated.
+			condensed (bool): If True, condenses the motif to be agnostic to the number 
+							  of nodes in each event [default=False].
 		Returns:
 			None
 		"""
@@ -429,7 +437,7 @@ class EventGraph(object):
 			columns = ['source', 'target', 'time', edge_type]
 
 		def find_motif(x, columns, condensed=False, directed=False):
-		    """Test function (think about duration)"""
+		    """ Create a motif from the joined event table. """
 		    e1 = tuple(x['{}_s'.format(c)] for c in columns)
 		    e2 = tuple(x['{}_t'.format(c)] for c in columns)
 		    return str(Motif(e1,e2, condensed, directed))
@@ -449,12 +457,14 @@ class EventGraph(object):
 
 	def create_networkx_aggregate_graph(self, edge_colormap=None):
 		"""
+		Creates an aggregate static network of node interactions within the event graph.
 
 		Input:
-			
-
+			edge_colormap (dict): Mapping from edge type to a color.
+		
 		Returns:
-
+			G (nx.Graph/nx.DiGraph): Aggregrate graph of the event graph.
+									 Directed or undirected dependent on event graph type.
 		"""
 		try: 
 			import networkx as nx
@@ -482,6 +492,14 @@ class EventGraph(object):
 
 	def create_networkx_event_graph(self, event_colormap=None):
 		"""
+		Creates a networkx graph representation of the event graph.
+
+		Input:
+			edge_colormap (dict): Mapping from edge type to a color.
+		
+		Returns:
+			G (nx.DiGraph): Aggregrate graph of the event graph.
+							Directed or undirected dependent on event graph type.
 		"""
 
 		try: 
@@ -504,11 +522,14 @@ class EventGraph(object):
 		
 	def connected_components_indices(self):
 		"""
-		
+		Calculates the component that each event belongs to and saves it to self.events_meta.
+
+		Note that component numerical assignment is random and can different after each run.
+
 		Input:
-
+			None
 		Returns:
-
+			components (list): A list containing the component allocation for each event.
 		"""
 
 		self._generate_eg_matrix()
@@ -523,14 +544,15 @@ class EventGraph(object):
 
 	def get_component(self, ix):
 		"""
-		Returns a component of the event graph as an event graph
+		Returns a component of the event graph as an EventGraph object.
 
 		Input:
-			ix: Index of component
+			ix (int): Index of component.
 
 		Returns:
-			eventgraph: EventGraph of the component
+			eventgraph: EventGraph of the component.
 		"""
+
 		if not hasattr(self.events_meta, 'component'):
 			self.connected_components_indices()
 		if not hasattr(self.eg_edges, 'component'):
@@ -540,13 +562,13 @@ class EventGraph(object):
 		events = self.events[event_ids]
 		eg_edges = self.eg_edges[self.eg_edges.component==ix]
 		events_meta = self.events_meta[event_ids]
-		event_pair_processed = {row.source:{row.target: ix} for ix, row in eg_edges.iterrows()}
+		_event_pair_processed = {row.source:{row.target: ix} for ix, row in eg_edges.iterrows()}
 
 		payload = {'eg_edges': eg_edges,
 		   'events': events,
 		   'events_meta': events_meta,
 		   'graph_rules': self.event_graph_rules,
-		   'event_pair_processed': event_pair_processed
+		   '_event_pair_processed': _event_pair_processed
 		   }
 
 		return self.__class__(**payload)
@@ -554,14 +576,15 @@ class EventGraph(object):
 	def connected_components(self, min_size=None, top=None):
 		"""
 		Returns the connected components of the event graph as a list of
-		event graphs
+		EventGraphs objects.
 
 		Input:
-			None
+			min_size (int): The minimum number of events for a component to be counted (cannot be used with top).
+			top (int): The largest 'top' components in the event graph (cannot be used with min_size)
 
 		Returns:
-			list: A list of EventGraph objects corresponding to the connected components
-				  of the original EventGraph
+			components (list): A list of EventGraph objects corresponding to the connected components
+				  			   of the original event graph.
 		"""
 
 		if (min_size is not None) and (top is not None):
@@ -582,17 +605,18 @@ class EventGraph(object):
 
 	def filter_edges(self, delta_lb=None, delta_ub=None, motif_types=None, inplace=False):
 		"""
-		Filter edges based on edge weight (or motif possibly)
-		SUGGEST an inplace keyword
+		Filter edges based on edge weight or motif type.
 
 		Input:
-
+			delta_lb (float): Minimum edge weight (keep if delta > delta_lb).
+			delta_ub (float): Maximum edge weight (keep if delta <= delta_ub).
+			motif_types (list): List of motif types to keep.
+			inplace (bool): Chose whether to perform the edge removal inplace or to create a new EventGraph [default=False].
 		Returns:
-			EventGraph
+			EventGraph: If inplace=False returns an EventGraph, else returns None.
 
 		"""
 
-		# Events stay the same, it's just eg_edges that changes.
 		eg_edges = self.eg_edges
 
 		if delta_lb is not None:
@@ -602,16 +626,16 @@ class EventGraph(object):
 		if motif_types is not None:
 			eg_edges = eg_edges[eg_edges.motif.isin(motif_types)]
 
-		event_pair_processed = {row.source:{row.target: ix} for ix, row in eg_edges.iterrows()}
+		_event_pair_processed = {row.source:{row.target: ix} for ix, row in eg_edges.iterrows()}
 
 		if inplace:
 			self.eg_edges = eg_edges
-			self.event_pair_processed = event_pair_processed
+			self._event_pair_processed = _event_pair_processed
 			return None
 		else:
 			filtered = deepcopy(self)
 			filtered.eg_edges = eg_edges
-			filtered.event_pair_processed = event_pair_processed
+			filtered._event_pair_processed = _event_pair_processed
 			return filtered
 
 	def filter_events(self, event_indices, edge_indices=None):
@@ -621,9 +645,9 @@ class EventGraph(object):
 		If it's connected components, our pruning of the eg_edges is simpler, but we want 
 		to be general if possible.
 
-		SUGGEST an inplace keyword
-
 		Input:
+			event_indices (list):
+			edge_indices (list):
 
 		Returns:
 			EventGraph: 
@@ -646,26 +670,36 @@ class EventGraph(object):
 								right_index=True, 
 								suffixes=('','_tmp'))[self.eg_edges.columns]
 
-			event_pair_processed = {row.source:{row.target: ix} for ix, row in eg_edges.iterrows()}
+			_event_pair_processed = {row.source:{row.target: ix} for ix, row in eg_edges.iterrows()}
 
 		else:
 			eg_edges = self.eg_edges.loc[edge_indices]
-			event_pair_processed = {row.source:{row.target: ix} for ix, row in eg_edges.iterrows()}
+			_event_pair_processed = {row.source:{row.target: ix} for ix, row in eg_edges.iterrows()}
 
 		payload = {'eg_edges': eg_edges,
 		   'events': events,
 		   'events_meta': events_meta,
 		   'graph_rules': self.event_graph_rules,
-		   'event_pair_processed': event_pair_processed
+		   '_event_pair_processed': _event_pair_processed
 		   }
 
 		return self.__class__(**payload)
 
 	def add_cluster_assignments(self, cluster_assignments):
-		""" """
+		""" 
+		Adds the cluster assignment to the events_meta table.
+
+		Input:
+			cluster_assignments (dict/pd.Series):
+		Returns:
+			None
+		"""
+
+		if isinstance(cluster_assignments, dict):
+			cluster_assignments = pd.Series(cluster_assignments)
 
 		def cluster_or_zero(x, cluster_assignments):
-			""""""
+			""" Returns the cluster of an event, or zero if unclustered. """
 			if x in cluster_assignments.index:
 				return cluster_assignments[x]
 			else:
@@ -677,8 +711,11 @@ class EventGraph(object):
 		"""
 		Save to file, either as json or object pickle.
 
-		Input:
+		Note: Currenltly only save to JSON is available (and advised!).
 
+		Input:
+			fp (str):
+			method (str):
 		Returns:
 			None
 		"""
