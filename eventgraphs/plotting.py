@@ -6,6 +6,8 @@ from collections import defaultdict
 from IPython.display import Image
 import matplotlib.pyplot as plt
 
+from scipy.cluster.hierarchy import dendrogram
+
 def plot_aggregate_graph(eventgraph, edge_colormap=None, display=True, **kwargs):
 	""" 
 	Plots the aggregate graph of nodes of an eventgraph. 
@@ -134,3 +136,48 @@ def plot_barcode(eventgraph, delta_ub, top, ax=None):
 	ax.tick_params(axis='x', length=5, which='major', bottom=True, top=False)
 	
 	return ax
+
+def plot_cluster_timeseries(eventgraph, interval_width, normalized=False, ax=None, plotting_kwargs=None):
+	""" """
+
+	from .analysis import calculate_cluster_timeseries
+
+	timeseries, total = calculate_cluster_timeseries(eventgraph, interval_width)
+
+	if ax is None:
+		ax = plt.gca()
+	if plotting_kwargs is None:
+		plotting_kwargs = {'logy':False, 'linestyle':'--', 'marker':'s'}
+
+	for cluster, ts in timeseries.items():
+			label = cluster if cluster > 0 else 'Unclustered'
+			if normalized:
+				(ts/total).plot(label=label, ax=ax, **plotting_kwargs)
+			else:
+				ts.plot(label=label, ax=ax, **plotting_kwargs)
+	ax.legend(loc='best')
+
+	return ax
+
+def plot_component_dendrogram(Z, ax=None, dendrogram_kwargs=None):
+	""" """
+
+	if ax is None:
+		ax = plt.gca()
+	if dendrogram_kwargs is None:
+		dendrogram_kwargs = {'leaf_rotation':90, 'truncate_mode':'lastp', 'p':100,
+							 'no_labels':True,'distance_sort':False,'count_sort':True,
+							 'above_threshold_color':'k', 'color_threshold':80}
+
+	ax.set_ylabel('Distance')
+
+	dendrogram(Z,
+			   ax=ax,
+			   **dendrogram_kwargs
+			   )
+
+	return ax
+
+def plot_component_embedding():
+	""""""
+	

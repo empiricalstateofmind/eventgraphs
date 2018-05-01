@@ -3,7 +3,7 @@ from collections import defaultdict
 
 from scipy.spatial.distance import pdist
 from sklearn.preprocessing import StandardScaler
-from scipy.cluster.hierarchy import dendrogram, linkage, fcluster
+from scipy.cluster.hierarchy import linkage, fcluster
 
 from .analysis import (calculate_motif_distribution, 
 					   calculate_motif_entropy,
@@ -120,28 +120,33 @@ def generate_features(components, feature_spec=FEATURE_SPEC, verbose=False):
 	scale_features = pd.DataFrame(scale_features).T.fillna(0)
 	return features, scale_features
 
-def similarity(features, metric='euclidean', normalize=True):
-    """ Normalise features and calculate similarity matrix """
-    if normalize:
-        X = StandardScaler().fit_transform(features.values)
-    else:
-        X = features.values
-    sim = pdist(X, metric)
-    return sim
+def generate_distance_matrix(features, metric='euclidean', normalize=True):
+	""" Normalise features and calculate similarity matrix """
+	if normalize:
+		X = StandardScaler().fit_transform(features.values)
+	else:
+		X = features.values
+	distance = pdist(X, metric)
+	return distance
+
+def generate_linkage(distance_matrix, kind='ward'):
+	""""""
+	return linkage(distance_matrix, kind)
+
 
 def find_clusters(features, kind='ward', criterion='maxclust', max_clusters=4, **kwargs):
-    """"""
+	""""""
 
-    sim = similarity(features, **kwargs)
+	sim = generate_distance_matrix(features, **kwargs)
 
-    Z = linkage(sim, kind)
-    clusters = fcluster(Z, max_clusters, criterion='maxclust')
+	Z = linkage(sim, kind)
+	clusters = fcluster(Z, max_clusters, criterion='maxclust')
 
-    cluster_centers = pd.DataFrame({cluster:features.loc[clusters==cluster].mean() for cluster in range(1, max_clusters+1)})
+	cluster_centers = pd.DataFrame({cluster:features.loc[clusters==cluster].mean() for cluster in range(1, max_clusters+1)})
 
-    clusters = pd.Series({f:c for f,c in zip(features.index, clusters)})
-    
-    return clusters, cluster_centers
+	clusters = pd.Series({f:c for f,c in zip(features.index, clusters)})
+
+	return clusters, cluster_centers
 
 def assign_to_cluster(observation, cluster_centers):
 	""" Assign an observation to a cluster. """
