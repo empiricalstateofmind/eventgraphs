@@ -570,26 +570,6 @@ class EventGraph(object):
 		if not hasattr(self.events_meta, 'component'):
 			self.connected_components_indices()
 
-		# cpts = defaultdict(list)
-		# for ix, comp in self.events_meta.component.items():
-		#     cpts[comp].append(ix)
-
-		# cpts_edges = defaultdict(list)
-		# for ix, row in self.eg_edges.iterrows():
-		#     c1 = self.events_meta.component[row.source]
-		#     c2 = self.events_meta.component[row.target]
-		#     if c1 == c2:
-		#         cpts_edges[c1].append(ix)
-
-		# # Do we want to do some sorting and enumeration of components?
-		# # Currently the index does not match the meta table if we sort.
-
-		# cpts = sorted([self.filter_events(events, cpts_edges[comp]) for comp, events in cpts.items()], 
-		# 			  key=lambda x: len(x),
-		# 			  reverse=True)
-
-		# Dictionary is ordered, but this fact is not used.
-
 		component_sizes = self.events_meta.component.value_counts()
 		if min_size is not None:
 			component_sizes = component_sizes[component_sizes>=min_size]
@@ -633,15 +613,6 @@ class EventGraph(object):
 			filtered.eg_edges = eg_edges
 			filtered.event_pair_processed = event_pair_processed
 			return filtered
-
-		# payload = {'eg_edges':eg_edges,
-		# 		   'events':self.events,
-		# 		   'events_meta':self.events_meta,
-		# 		   'graph_rules': self.event_graph_rules,
-		# 		   'event_pair_processed': event_pair_processed
-		# 		   }
-
-		# return self.__class__(**payload)
 
 	def filter_events(self, event_indices, edge_indices=None):
 		"""
