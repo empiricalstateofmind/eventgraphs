@@ -5,6 +5,8 @@ import env
 import data
 from eventgraphs import EventGraph, BadInputError
 
+from pandas.testing import assert_frame_equal
+
 class InputOutputTests(TestCase):
 	"""
 	Tests the input and output functionality of EventGraph class.
@@ -31,16 +33,16 @@ class InputOutputTests(TestCase):
 
 		EG = EventGraph.from_dict_eventlist(events=data.directed,
 									  		graph_rules='teg')
-		EG._build()
+		EG.build()
 		EG.save('test.json')
 		LG = EventGraph.from_file('test.json')
 		# Cannot compare dataframes where columns are in different order
 		LG.eg_edges = LG.eg_edges[EG.eg_edges.columns] 
 
-		self.assertTrue((LG.events == EG.events).all().all())
-		self.assertTrue((LG.eg_edges == EG.eg_edges).all().all())
-		self.assertTrue((LG.events_meta == EG.events_meta).all().all())
-		self.assertTrue(hasattr(LG, 'event_pair_processed'))
+		assert_frame_equal(LG.events, EG.events)
+		assert_frame_equal(LG.eg_edges, EG.eg_edges)
+		assert_frame_equal(LG.events_meta, EG.events_meta)
+		self.assertTrue(hasattr(LG, '_event_pair_processed'))
 
 	def test_bad_input(self):
 		""""""
@@ -77,7 +79,7 @@ class ComponentsTests(TestCase):
 	def setUp(self):
 		self.EG = EventGraph.from_dict_eventlist(events=data.string_labels,
 											graph_rules='teg')
-		self.EG._build()
+		self.EG.build()
 
 	def tearDown(self):
 		self.EG = None

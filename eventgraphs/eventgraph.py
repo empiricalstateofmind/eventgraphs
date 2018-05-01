@@ -326,9 +326,9 @@ class EventGraph(object):
 
 		for count, events in enumerate(self.ne_incidence.values()):
 			if verbose and count%50==0: print(count, '/', self.N, end='\r', flush=True)
-			for ix, event_one in enumerate(events): 
+			for ix1, event_one in enumerate(events): 
 
-				for count, event_two in enumerate(events[ix+1:]):
+				for ix2, event_two in enumerate(events[ix1+1:]):
 
 					if self._event_pair_processed[event_one][event_two]:
 						pass
@@ -344,14 +344,13 @@ class EventGraph(object):
 							break
 
 						if connected:
-							self._edge_indexer += 1
 							eg_edges[self._edge_indexer] = (event_one, event_two, dt)
-
+							self._edge_indexer += 1
 
 					# if subsequent event only then break 
 					# Can extend our rules so that we can do 'next X events only'.
 					if self.event_graph_rules['subsequential']:
-						if count + 1 == self.event_graph_rules['subsequential']:
+						if ix2 + 1 == self.event_graph_rules['subsequential']:
 							break
 
 		if hasattr(self,'eg_edges'):
