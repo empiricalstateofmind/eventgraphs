@@ -63,6 +63,12 @@ class Motif(object):
 
 	def _iconify_motif(self):
 		"""
+
+		
+		Input:
+
+		Returns:
+			None
 		"""
 		icons=['●','○','+'] 
 		string = ''

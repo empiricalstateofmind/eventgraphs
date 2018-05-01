@@ -656,8 +656,6 @@ class EventGraph(object):
 		events = self.events.loc[event_indices]
 		events_meta = self.events_meta.loc[event_indices]
 
-
-		# This should be reasonably quick now that it is table joins.
 		if edge_indices is None:
 			eg_edges = pd.merge(self.eg_edges, 
 								events, 

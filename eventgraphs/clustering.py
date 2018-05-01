@@ -76,7 +76,14 @@ FEATURE_SPEC = {'event_graph_features': EVENT_GRAPH_FEATURES,
 				'aggregate_graph_features':AGGREGATE_GRAPH_FEATURES}
 
 def generate_features(components, feature_spec=FEATURE_SPEC, verbose=False):
-	""" Generates the feature table for a collection of components. """
+	""" 
+	Generates the feature table for a collection of components. 
+
+	Input:
+
+	Returns:
+		None
+	"""
 
 	features = defaultdict(dict)
 	scale_features = defaultdict(dict)
@@ -124,7 +131,15 @@ def generate_features(components, feature_spec=FEATURE_SPEC, verbose=False):
 	return features, scale_features
 
 def generate_distance_matrix(features, metric='euclidean', normalize=True):
-	""" Normalise features and calculate similarity matrix """
+	""" 
+	Normalise features and calculate similarity matrix. 
+
+	Input:
+
+	Returns:
+		None
+	"""
+
 	if normalize:
 		X = StandardScaler().fit_transform(features.values)
 	else:
@@ -133,12 +148,25 @@ def generate_distance_matrix(features, metric='euclidean', normalize=True):
 	return distance
 
 def generate_linkage(distance_matrix, kind='ward'):
-	""""""
+	"""
+
+	Input:
+
+	Returns:
+		None
+	"""
+
 	return linkage(distance_matrix, kind)
 
 
 def find_clusters(features, kind='ward', criterion='maxclust', max_clusters=4, **kwargs):
-	""""""
+	"""
+
+	Input:
+
+	Returns:
+		None
+	"""
 
 	sim = generate_distance_matrix(features, **kwargs)
 
@@ -152,13 +180,24 @@ def find_clusters(features, kind='ward', criterion='maxclust', max_clusters=4, *
 	return clusters, cluster_centers
 
 def assign_to_cluster(observation, cluster_centers):
-	""" Assign an observation to a cluster. """
+	""" Assign an observation to a cluster. 
+
+	Input:
+
+	Returns:
+		None
+	"""
 
 	return (cluster_centers.subtract(observation, axis=0)**2).sum().idxmin()
 
 def reduce_feature_dimensionality(features, ndim=2, method='pca', tsne_kwargs=None):
 	"""
 	Reduce the dimensionality of the component features using PCA or t-SNE (or both).
+
+	Input:
+
+	Returns:
+		None	
 	"""
 
 	if method=='pca':

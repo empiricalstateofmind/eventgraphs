@@ -10,7 +10,10 @@ def calculate_iet_distribution(eventgraph, by_motif=False, normalize=True, cumul
 	""" 
 	Calculate the inter-event time distribution for an event graph. 
 	
+	Input:
 
+	Returns:
+		None
 	"""
 
 	if by_motif:
@@ -39,12 +42,22 @@ def calculate_motif_distribution(eventgraph, normalize=True):
 	"""
 	Calculate the motif distributon of an event graph
 
+	Input:
+
+	Returns:
+		None
 	"""
 	return eventgraph.eg_edges.motif.value_counts(normalize=normalize)
 
 
 def calculate_component_distribution(eventgraph, normalize=True, cumulative=False, bins=None):
 	"""
+
+
+	Input:
+
+	Returns:
+		None
 	"""
 	if 'component' not in eventgraph.events_meta.columns:
 		eventgraph._generate_eg_matrix()
@@ -67,6 +80,11 @@ def calculate_component_distribution_over_delta(eventgraph, delta_range, normali
 	Calculates the component size distribution (# events) over a range of dt values.
 
 	dt range must be less than that of the eventgraph.
+
+	Input:
+
+	Returns:
+		None
 	"""
 
 	if hasattr(eventgraph,'eg_matrix'):
@@ -91,13 +109,27 @@ def calculate_component_distribution_over_delta(eventgraph, delta_range, normali
 	return component_distributions, largest_component
 
 def calculate_motif_entropy(eventgraph, normalize=False):
-	""" Calculate the motif entropy """
+	""" 
+	Calculate the motif entropy 
+
+	Input:
+
+	Returns:
+		None
+	"""
 	motifs = calculate_motif_distribution(eventgraph)
 	motif_entropy = -sum([p*np.log(p) for p in motifs.values if p>0])
 	return motif_entropy
 
 def calculate_iet_entropy(eventgraph):
-	""" """
+	"""
+
+
+	Input:
+
+	Returns:
+		None
+	"""
 	iets = calculate_iet_distribution(eventgraph, cumulative=True)
 	max_iet = max(iets.index)
 	if max_iet > 0:
@@ -108,7 +140,13 @@ def calculate_iet_entropy(eventgraph):
 	return iet_entropy
 
 def calculate_activity(eventgraph, unit=1):
-	""" """
+	""" 
+
+	Input:
+
+	Returns:
+		None
+	"""
 	duration = eventgraph.D
 	if duration==0: 
 		activity = np.inf
@@ -117,7 +155,14 @@ def calculate_activity(eventgraph, unit=1):
 	return activity
 
 def calculate_edge_density(G):
-	""" """
+	""" 
+
+
+	Input:
+
+	Returns:
+		None
+	"""
 	N = len(G.nodes())
 	if N > 1:
 		return len(G.edges())/(N*(N-1))
@@ -125,7 +170,13 @@ def calculate_edge_density(G):
 		return 0
 
 def calculate_clustering_coefficient(G):
-	""" """
+	"""
+
+	Input:
+
+	Returns:
+		None
+	"""
 
 	N = len(G.nodes())
 	if N > 1:
@@ -136,7 +187,14 @@ def calculate_clustering_coefficient(G):
 		return 0
 
 def calculate_reciprocity_ratio(G):
-	""" """
+	""" 
+
+	Input:
+
+	Returns:
+		None
+	"""
+	
 	N = len(G.nodes())
 	if N > 1:
 		recip = G.to_undirected(reciprocal=True)
@@ -146,7 +204,14 @@ def calculate_reciprocity_ratio(G):
 		return 0
 
 def calculate_degree_assortativity(G):
-	""" Calculates a 'fake' degree assortivitity. To be ironed out as a concept. """
+	""" 
+	Calculates a 'fake' degree assortivitity. To be ironed out as a concept. 
+
+	Input:
+
+	Returns:
+		None
+	"""
 
 	N = len(G.nodes())
 	if N <= 1:
@@ -172,6 +237,11 @@ def calculate_degree_assortativity(G):
 
 def calculate_cluster_timeseries(eventgraph, interval_width):
 	"""
+
+	Input:
+
+	Returns:
+		None	
 	"""
 
 	if 'cluster' not in eventgraph.events_meta.columns:
