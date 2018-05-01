@@ -115,7 +115,7 @@ def plot_full_barcode_efficiently(eventgraph, delta_ub, top, ax=None):
 	ax.set_xlim((tmin,tmax))   
 	return ax
 
-def plot_fancy_barcode(eventgraph, delta_ub, top, ax=None):
+def plot_barcode(eventgraph, delta_ub, top, ax=None):
 	""" Prints a fancier barcode. """
 
 	if ax is None:
