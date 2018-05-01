@@ -2,8 +2,11 @@ import pandas as pd
 from collections import defaultdict
 
 from scipy.spatial.distance import pdist
-from sklearn.preprocessing import StandardScaler
 from scipy.cluster.hierarchy import linkage, fcluster
+
+from sklearn.preprocessing import StandardScaler
+from sklearn.manifold import TSNE
+from sklearn.decomposition import PCA
 
 from .analysis import (calculate_motif_distribution, 
 					   calculate_motif_entropy,
@@ -152,3 +155,23 @@ def assign_to_cluster(observation, cluster_centers):
 	""" Assign an observation to a cluster. """
 
 	return (cluster_centers.subtract(observation, axis=0)**2).sum().idxmin()
+
+def reduce_feature_dimensionality(features, ndim=2, method='pca', tsne_kwargs=None):
+	"""
+	Reduce the dimensionality of the component features using PCA or t-SNE (or both).
+	"""
+
+	if method=='pca':
+		pca = PCA(dimensions)
+		X = StandardScaler().fit_transform(features.values)
+		return pca.fit_transform(X)
+
+	if method=='tsne':
+		X = StandardScaler().fit_transform(features.values)
+		if X.shape[1] > 50:
+			pca = PCA(50)
+			X = pca.fit_transform(X)
+		if tsne_kwargs is None:
+			tsne_kwargs = {'perplexity':40, 'n_iter':1000, 'verbose':1}
+		tsne = TSNE(n_components=ndim, **tsne_kwargs)
+		return tsne.fit_transform(X)

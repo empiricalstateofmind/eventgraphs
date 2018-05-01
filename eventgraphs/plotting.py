@@ -4,7 +4,9 @@ import pandas as pd
 import numpy as np
 from collections import defaultdict
 from IPython.display import Image
+
 import matplotlib.pyplot as plt
+from matplotlib import lines as mlines
 
 from scipy.cluster.hierarchy import dendrogram
 
@@ -178,6 +180,32 @@ def plot_component_dendrogram(Z, ax=None, dendrogram_kwargs=None):
 
 	return ax
 
-def plot_component_embedding():
-	""""""
-	
+def plot_component_embedding(X, clusters=None, ax=None):
+	"""
+
+	Colors will cycle for greater than 10 clusters (although by then the plot will
+	be too confusing anyway!).
+	"""
+
+	if ax is None:
+		ax = plt.gca()
+
+
+	if X.shape[1] > 2:
+		raise Exception("Only 2-dimensional data can be plotted.")
+
+	if clusters is None:
+		scatter = ax.scatter(X[:,0], X[:,1], marker='o')
+
+	else:
+		scatter = ax.scatter(X[:,0], X[:,1], c=['C{}'.format(c-1) for c in clusters], marker='o', label=clusters)
+		handles = [mlines.Line2D([], [], color='C{}'.format(c-1), marker='o', linestyle='',
+							 label='Cluster {}'.format(c)) for c in sorted(clusters.unique())]
+		ax.legend(loc='best', handles=handles, fontsize=12, frameon=True, fancybox=True)
+
+	ax.set_xlabel('Dimension 1')
+	ax.set_ylabel('Dimension 2')
+	ax.set_xticklabels('')
+	ax.set_yticklabels('')
+
+	return ax
