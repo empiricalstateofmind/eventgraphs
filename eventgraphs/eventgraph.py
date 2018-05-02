@@ -185,7 +185,7 @@ class EventGraph(object):
             self._event_pair_processed = kwargs.get('_event_pair_processed',
                                                     defaultdict(lambda: defaultdict(bool)))
 
-        self._generate_node_event_incidence()
+        self.generate_node_event_incidence()
 
         build_on_creation = kwargs.get('build_on_creation', False)
         if build_on_creation:
@@ -212,7 +212,7 @@ class EventGraph(object):
         else:
             return self.events.iloc[-1].time - self.events.iloc[0].time
 
-    def _generate_node_event_incidence(self):
+    def generate_node_event_incidence(self):
         """
         Creates a node-event incidence dictionary used to build the event graph.
 
@@ -252,7 +252,7 @@ class EventGraph(object):
             else:
                 self.oe_incidence[event.objects].append(ix)
 
-    def _generate_node_event_matrix(self):
+    def generate_node_event_matrix(self):
         """
         Creates a node-event matrix using the node-event incidence dictionary.
 
@@ -266,7 +266,7 @@ class EventGraph(object):
         """
 
         if self.ne_incidence is None:
-            self._generate_node_event_incidence()
+            self.generate_node_event_incidence()
 
         if not hasattr(self, 'event_map'):
             self.event_map = self.events.reset_index(drop=False)['index']
