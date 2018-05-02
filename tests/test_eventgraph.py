@@ -108,4 +108,4 @@ class ComponentsTests(TestCase):
 		components = self.EG.connected_components()
 		
 if __name__ == '__main__':
-    unittest.main()
+	unittest.main()
