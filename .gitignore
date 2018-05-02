@@ -5,3 +5,5 @@
 *.png
 tests/*.json
 pre-commit.sh
+.idea/
+.dropbox.attr
