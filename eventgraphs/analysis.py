@@ -11,9 +11,14 @@ def calculate_iet_distribution(eventgraph, by_motif=False, normalize=True, cumul
 	Calculate the inter-event time distribution for an event graph. 
 	
 	Input:
+		eventgraph (EventGraph):
+		by_motif (bool): [default=False]
+		normalize (bool): [default=True]
+		cumulative (bool): [default=False]
+		bins (array): [default=None]
 
 	Returns:
-		None
+		iets (pd.Series):
 	"""
 
 	if by_motif:
@@ -43,10 +48,13 @@ def calculate_motif_distribution(eventgraph, normalize=True):
 	Calculate the motif distributon of an event graph
 
 	Input:
+		eventgraph (EventGraph):
+		normalize (bool): [default=True]
 
 	Returns:
-		None
+		motifs (pd.Series):
 	"""
+
 	return eventgraph.eg_edges.motif.value_counts(normalize=normalize)
 
 
@@ -55,10 +63,15 @@ def calculate_component_distribution(eventgraph, normalize=True, cumulative=Fals
 
 
 	Input:
-
+		eventgraph (EventGraph):
+		normalize (bool): [default=True]
+		cumulative (bool): [default=False]
+		bins (array): [default=None]
+	
 	Returns:
-		None
+		component_dist (pd.Series):
 	"""
+
 	if 'component' not in eventgraph.events_meta.columns:
 		eventgraph._generate_eg_matrix()
 
@@ -82,9 +95,13 @@ def calculate_component_distribution_over_delta(eventgraph, delta_range, normali
 	dt range must be less than that of the eventgraph.
 
 	Input:
+		eventgraph (EventGraph):
+		delta_range (array):
+		normalize (bool): [default=True]
 
 	Returns:
-		None
+		component_distributions (dict):
+		largest_component (pd.Series):
 	"""
 
 	if hasattr(eventgraph,'eg_matrix'):
@@ -113,10 +130,13 @@ def calculate_motif_entropy(eventgraph, normalize=False):
 	Calculate the motif entropy 
 
 	Input:
+		eventgraph (EventGraph):
+		normalize (bool): [default=False]
 
 	Returns:
-		None
+		motif_entropy (float):
 	"""
+
 	motifs = calculate_motif_distribution(eventgraph)
 	motif_entropy = -sum([p*np.log(p) for p in motifs.values if p>0])
 	return motif_entropy
@@ -126,10 +146,12 @@ def calculate_iet_entropy(eventgraph):
 
 
 	Input:
+		eventgraph (EventGraph):
 
 	Returns:
-		None
+		iet_entropy (float):
 	"""
+
 	iets = calculate_iet_distribution(eventgraph, cumulative=True)
 	max_iet = max(iets.index)
 	if max_iet > 0:
@@ -143,10 +165,13 @@ def calculate_activity(eventgraph, unit=1):
 	""" 
 
 	Input:
+		eventgraph (EventGraph):
+		unit (int): [default=1]
 
 	Returns:
-		None
+		activity (float):
 	"""
+
 	duration = eventgraph.D
 	if duration==0: 
 		activity = np.inf
@@ -159,23 +184,25 @@ def calculate_edge_density(G):
 
 
 	Input:
-
-	Returns:
-		None
+		G (nx.Graph/nx.DiGraph):
+	Return:
+		density (float):
 	"""
+
 	N = len(G.nodes())
 	if N > 1:
 		return len(G.edges())/(N*(N-1))
 	else:
-		return 0
+		return 0.0
 
 def calculate_clustering_coefficient(G):
-	"""
+	""" 
+
 
 	Input:
-
-	Returns:
-		None
+		G (nx.Graph/nx.DiGraph):
+	Return:
+		clustering (float):
 	"""
 
 	N = len(G.nodes())
@@ -184,15 +211,16 @@ def calculate_clustering_coefficient(G):
 		clustering = nx.cluster.average_clustering(recip)
 		return clustering
 	else:
-		return 0
+		return 0.0
 
 def calculate_reciprocity_ratio(G):
 	""" 
 
-	Input:
 
-	Returns:
-		None
+	Input:
+		G (nx.Graph/nx.DiGraph):
+	Return:
+		recip_ratio (float):
 	"""
 	
 	N = len(G.nodes())
@@ -201,16 +229,16 @@ def calculate_reciprocity_ratio(G):
 		recip_ratio = 2*len(recip.edges())/len(G.edges())
 		return recip_ratio
 	else:
-		return 0
+		return 0.0
 
 def calculate_degree_assortativity(G):
 	""" 
 	Calculates a 'fake' degree assortivitity. To be ironed out as a concept. 
 
 	Input:
-
-	Returns:
-		None
+		G (nx.Graph/nx.DiGraph):
+	Return:
+		assorts (dict):
 	"""
 
 	N = len(G.nodes())
@@ -239,9 +267,12 @@ def calculate_cluster_timeseries(eventgraph, interval_width):
 	"""
 
 	Input:
+		eventgraph (EventGraph):
+		interval_width (int):
 
 	Returns:
-		None	
+		timeseries (dict):
+		total (pd.Series):	
 	"""
 
 	if 'cluster' not in eventgraph.events_meta.columns:

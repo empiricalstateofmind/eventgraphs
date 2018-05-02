@@ -17,9 +17,13 @@ def plot_aggregate_graph(eventgraph, edge_colormap=None, display=True, **kwargs)
 	Currently doesn't support argument changes.
 
 	Input:
+		eventgraph (EventGraph):
+		edge_colormap (dict): [default=None]
+		display (bool): [default=True]
+		kwargs:
 
 	Returns:
-		None
+		A ():
 	"""
 
 	G = eventgraph.create_networkx_aggregate_graph(edge_colormap)
@@ -56,9 +60,13 @@ def plot_event_graph(eventgraph, event_colormap=None, remove_singles=False, **kw
 	"""
 
 	Input:
+		eventgraph (EventGraph):
+		event_colormap (dict): [default=None]
+		remove_singles (bool): [default=False]
+		kwargs:
 
 	Returns:
-		None
+		A ()L
 	"""
 
 	# This needs changing.
@@ -108,13 +116,17 @@ def plot_event_graph(eventgraph, event_colormap=None, remove_singles=False, **kw
 	return A
 
 def plot_full_barcode_efficiently(eventgraph, delta_ub, top, ax=None):
-	""" Prints a barcode. 
-
+	""" 
+	Prints a barcode. 
 
 	Input:
+		eventgraph (EventGraph):
+		delta_ub (int):
+		top (int):
+		ax (matplotlib.axes._subplots.AxesSubplot): [default=None]
 
 	Returns:
-		None
+		ax (matplotlib.axes._subplots.AxesSubplot):
 	"""
 
 	if ax is None:
@@ -142,9 +154,13 @@ def plot_barcode(eventgraph, delta_ub, top, ax=None):
 	Prints a barcode. 
 
 	Input:
+		eventgraph (EventGraph):
+		delta_ub (int):
+		top (int):
+		ax (matplotlib.axes._subplots.AxesSubplot): [default=None]
 
 	Returns:
-		None
+		ax (matplotlib.axes._subplots.AxesSubplot):
 	"""
 
 	if ax is None:
@@ -167,10 +183,16 @@ def plot_barcode(eventgraph, delta_ub, top, ax=None):
 def plot_cluster_timeseries(eventgraph, interval_width, normalized=False, ax=None, plotting_kwargs=None):
 	"""
 
+
 	Input:
+		eventgraph (EventGraph):
+		interval_width (int):
+		normalized (bool): [default=False]
+		ax (matplotlib.axes._subplots.AxesSubplot): [default=None]
+		plotting_kwargs: [default=None]
 
 	Returns:
-		None
+		ax (matplotlib.axes._subplots.AxesSubplot):
 	"""
 
 	from .analysis import calculate_cluster_timeseries
@@ -196,9 +218,12 @@ def plot_component_dendrogram(Z, ax=None, dendrogram_kwargs=None):
 	""" 
 
 	Input:
+		Z (array):
+		ax (matplotlib.axes._subplots.AxesSubplot): [default=None]
+		dendrogram_kwargs: [default=None]
 
 	Returns:
-		None
+		ax (matplotlib.axes._subplots.AxesSubplot):
 	"""
 
 	if ax is None:
@@ -224,9 +249,12 @@ def plot_component_embedding(X, clusters=None, ax=None):
 	be too confusing anyway!).
 
 	Input:
+		X (array):
+		clusters (list/pd.Series):
+		ax (matplotlib.axes._subplots.AxesSubplot): [default=None]
 
 	Returns:
-		None
+		ax (matplotlib.axes._subplots.AxesSubplot):
 	"""
 
 	if ax is None:

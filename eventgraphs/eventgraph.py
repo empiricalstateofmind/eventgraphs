@@ -220,7 +220,8 @@ class EventGraph(object):
 
 		Returns:
 			None
-		"""        
+		"""
+
 		self.ne_incidence = defaultdict(list)
 		for ix, event in self.events.iterrows():
 
@@ -241,6 +242,7 @@ class EventGraph(object):
 		Returns:
 			None
 		"""   
+
 		self.oe_incidence = defaultdict(list)
 		for ix, event in self.events.iterrows():
 			if isinstance(event.objects, Iterable) and not isinstance(event.objects, str):
@@ -259,7 +261,7 @@ class EventGraph(object):
 		Input:
 			None
 		Returns:
-			scipy.sparse.csc_matrix
+			event_matrix (scipy.sparse.csc_matrix):
 		"""
 		
 		if self.ne_incidence is None:
@@ -290,7 +292,7 @@ class EventGraph(object):
 		Input:
 			None
 		Returns:
-			scipy.sparse.csc_matrix
+			event_matrix (scipy.sparse.csc_matrix):
 		"""
 		
 		if not hasattr(self, 'event_map'):
@@ -367,7 +369,7 @@ class EventGraph(object):
 		the node relations)
 
 		Input:
-			None
+			verbose (bool): [default=False]
 		Returns:
 			None
 		"""
@@ -612,7 +614,7 @@ class EventGraph(object):
 			motif_types (list): List of motif types to keep.
 			inplace (bool): Chose whether to perform the edge removal inplace or to create a new EventGraph [default=False].
 		Returns:
-			EventGraph: If inplace=False returns an EventGraph, else returns None.
+			filtered (EventGraph): If inplace=False returns an EventGraph, else returns None.
 
 		"""
 
@@ -649,7 +651,7 @@ class EventGraph(object):
 			edge_indices (list):
 
 		Returns:
-			EventGraph: 
+			filtered (EventGraph): 
 		"""
 
 		events = self.events.loc[event_indices]

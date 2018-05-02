@@ -80,9 +80,13 @@ def generate_features(components, feature_spec=FEATURE_SPEC, verbose=False):
 	Generates the feature table for a collection of components. 
 
 	Input:
+		components (list):
+		feature_spec (dict): [default=FEATURE_SPEC]
+		verbose (bool): [default=False]
 
 	Returns:
-		None
+		features (pd.DataFrame):
+		scale_features (pd.DataFrame):
 	"""
 
 	features = defaultdict(dict)
@@ -131,13 +135,15 @@ def generate_features(components, feature_spec=FEATURE_SPEC, verbose=False):
 	return features, scale_features
 
 def generate_distance_matrix(features, metric='euclidean', normalize=True):
-	""" 
-	Normalise features and calculate similarity matrix. 
+	"""
+	Calculate the pairwise distances between components.
 
 	Input:
-
+		features (pd.DataFrame):
+		metric (str): [default='euclidean']
+		normalize (bool): [default=True]
 	Returns:
-		None
+		distance (array):
 	"""
 
 	if normalize:
@@ -151,9 +157,11 @@ def generate_linkage(distance_matrix, kind='ward'):
 	"""
 
 	Input:
+		distance_matrix (array):
+		kind (str): [default='ward']
 
 	Returns:
-		None
+		linkage (array):
 	"""
 
 	return linkage(distance_matrix, kind)
@@ -163,9 +171,15 @@ def find_clusters(features, kind='ward', criterion='maxclust', max_clusters=4, *
 	"""
 
 	Input:
+		features (pd.DataFrame):
+		kind (str): [default='ward']
+		criterion (str): [default='maxclust']
+		max_clusters (int): [default=4]
+		kwargs: Key word arguments passed to generate_distance_matrix().
 
 	Returns:
-		None
+		clusters (pd.Series): A mapping from component to cluster.
+		cluster_centers (pd.DataFrame): The average quantity of each feature for each cluster.
 	"""
 
 	sim = generate_distance_matrix(features, **kwargs)
@@ -183,29 +197,34 @@ def assign_to_cluster(observation, cluster_centers):
 	""" Assign an observation to a cluster. 
 
 	Input:
-
+		observation (array):
+		cluster_centers (pd.DataFrame):
 	Returns:
-		None
+		index (int): Cluster assignment for the observation.
 	"""
 
 	return (cluster_centers.subtract(observation, axis=0)**2).sum().idxmin()
 
-def reduce_feature_dimensionality(features, ndim=2, method='pca', tsne_kwargs=None):
+def reduce_feature_dimensionality(features, ndim=2, method='pca', **tsne_kwargs):
 	"""
 	Reduce the dimensionality of the component features using PCA or t-SNE (or both).
 
 	Input:
+		features (pd.DataFrame):
+		ndim (int): [default=2]
+		method (str): [default='pca']
+		tsne_kwargs: Key word arguments to be passed to the TSNE class.
 
 	Returns:
-		None	
+		X (array): Array of shape (len(features), ndim) of the reduced data.	
 	"""
 
-	if method=='pca':
+	if method.lower()=='pca':
 		pca = PCA(dimensions)
 		X = StandardScaler().fit_transform(features.values)
 		return pca.fit_transform(X)
 
-	if method=='tsne':
+	if method.lower()=='tsne':
 		X = StandardScaler().fit_transform(features.values)
 		if X.shape[1] > 50:
 			pca = PCA(50)
