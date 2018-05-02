@@ -5,33 +5,38 @@ import env
 import data
 from eventgraphs import EventGraph, BadInputError
 
+import pandas as pd
 from pandas.testing import assert_frame_equal
 
-class InputOutputTests(TestCase):
+DATASETS = [data.directed, 
+			data.directed_hyper, 
+			data.directed_hyper_single, 
+			data.undirected_hyper,
+			data.extra_columns,
+			data.string_labels]
+
+class IOTests(TestCase):
 	"""
 	Tests the input and output functionality of EventGraph class.
 	"""
 
-	# Run only if pandas is installed?
-	def test_from_pandas(self):
+	def from_pandas(self, dataset):
 		""""""
-		import pandas as pd # Really want to remove the pandas dependency
-		df = pd.DataFrame(data.directed)
+		df = pd.DataFrame(dataset)
 		EG = EventGraph.from_pandas_eventlist(events=df,
 											  graph_rules='teg')
 		self.assertTrue(True)
 
-	def test_from_dict(self):
+	def from_dict(self, dataset):
 		""""""
-		EG = EventGraph.from_dict_eventlist(events=data.directed,
+		EG = EventGraph.from_dict_eventlist(events=dataset,
 									  		graph_rules='teg')
 		self.assertTrue(True)
 
-
-	def test_from_save_and_load(self):
+	def from_save_and_load(self, dataset):
 		""""""
 
-		EG = EventGraph.from_dict_eventlist(events=data.directed,
+		EG = EventGraph.from_dict_eventlist(events=dataset,
 									  		graph_rules='teg')
 		EG.build()
 		EG.save('test.json')
@@ -43,6 +48,21 @@ class InputOutputTests(TestCase):
 		assert_frame_equal(LG.eg_edges, EG.eg_edges)
 		assert_frame_equal(LG.events_meta, EG.events_meta)
 		self.assertTrue(hasattr(LG, '_event_pair_processed'))
+
+	def test_from_dict(self):
+		""" """
+		for dataset in DATASETS:
+			self.from_dict(dataset)
+
+	def test_from_pandas(self):
+		""" """
+		for dataset in DATASETS:
+			self.from_pandas(dataset)
+
+	def test_from_save_and_load(self):
+		""" """
+		for dataset in DATASETS:
+			self.from_save_and_load(dataset)
 
 	def test_bad_input(self):
 		""""""
