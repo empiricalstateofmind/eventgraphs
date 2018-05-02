@@ -225,7 +225,7 @@ def reduce_feature_dimensionality(features, ndim=2, method='pca', **tsne_kwargs)
     """
 
     if method.lower() == 'pca':
-        pca = PCA(dimensions)
+        pca = PCA(ndim)
         X = StandardScaler().fit_transform(features.values)
         return pca.fit_transform(X)
 

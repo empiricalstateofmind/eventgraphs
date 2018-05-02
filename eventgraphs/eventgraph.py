@@ -1,20 +1,17 @@
-import numpy as np
-import pandas as pd
-from scipy.sparse import csc_matrix, identity
-from scipy.sparse import linalg as spla
-from scipy.sparse import csgraph as csg
-
+import ast
+import json
 from collections import defaultdict
 from collections.abc import Iterable
+from copy import deepcopy
 from itertools import product
 
-import json
-import pickle
-import ast
-from copy import deepcopy
+import numpy as np
+import pandas as pd
+from scipy.sparse import csc_matrix
+from scipy.sparse import csgraph as csg
 
-from .prebuilt import PREBUILT
 from .motif import Motif
+from .prebuilt import PREBUILT
 
 
 # 1. _event_pair_processed contains event pairs event if they do not create an edge first time round.
@@ -192,7 +189,7 @@ class EventGraph(object):
 
         build_on_creation = kwargs.get('build_on_creation', False)
         if build_on_creation:
-            self._build()
+            self.build()
 
         # Indexes edges of the eventgraph as we create them.
         self._edge_indexer = 0

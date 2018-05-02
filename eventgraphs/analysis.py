@@ -1,10 +1,9 @@
+from copy import deepcopy
+
+import networkx as nx
 import numpy as np
 import pandas as pd
-import networkx as nx
-from scipy.sparse import linalg as spla
 from scipy.sparse import csgraph as csg
-
-from copy import deepcopy
 
 
 def calculate_iet_distribution(eventgraph, by_motif=False, normalize=True, cumulative=False, bins=None):

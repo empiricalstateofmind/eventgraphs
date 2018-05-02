@@ -1,13 +1,11 @@
-import networkx as nx
 import matplotlib
-import pandas as pd
-import numpy as np
-from collections import defaultdict
-from IPython.display import Image
-
 import matplotlib.pyplot as plt
+import networkx as nx
+import numpy as np
+import pandas as pd
+from IPython.display import Image
 from matplotlib import lines as mlines
-
+from matplotlib import collections as mcollect
 from scipy.cluster.hierarchy import dendrogram
 
 
@@ -58,7 +56,7 @@ def plot_aggregate_graph(eventgraph, edge_colormap=None, display=True, **kwargs)
     return A
 
 
-def plot_event_graph(eventgraph, event_colormap=None, remove_singles=False, **kwargs):
+def plot_event_graph(eventgraph, event_colormap=None, remove_singles=False, display=True, **kwargs):
     """
 
     Input:
@@ -145,7 +143,7 @@ def plot_full_barcode_efficiently(eventgraph, delta_ub, top, ax=None):
             tmax = max(tmax, event.time)
             tmin = min(tmin, event.time)
 
-    ln_coll = matplotlib.collections.LineCollection(segs, linewidths=1, colors='k')
+    ln_coll = mcollect.LineCollection(segs, linewidths=1, colors='k')
     bc = ax.add_collection(ln_coll)
     ax.set_ylim((0, top + 1))
     ax.set_xlim((tmin, tmax))
