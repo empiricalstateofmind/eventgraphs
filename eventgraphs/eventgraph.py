@@ -286,7 +286,7 @@ class EventGraph(object):
         self.ne_matrix = csc_matrix((data, (rows, cols)), dtype=bool)
         return self.ne_matrix
 
-    def _generate_eg_matrix(self, binary=False):
+    def generate_eg_matrix(self, binary=False):
         """
         Generate an (MxM) matrix of the event graph, weighted by inter-event times.
 
@@ -534,7 +534,7 @@ class EventGraph(object):
             components (list): A list containing the component allocation for each event.
         """
 
-        self._generate_eg_matrix()
+        self.generate_eg_matrix()
 
         components = csg.connected_components(self.eg_matrix,
                                               directed=True,
