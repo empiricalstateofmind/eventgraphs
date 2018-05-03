@@ -8,3 +8,4 @@ pre-commit.sh
 .idea/
 .dropbox.attr
 *.json
+*.egg-info
