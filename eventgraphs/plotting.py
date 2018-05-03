@@ -27,17 +27,17 @@ def plot_aggregate_graph(eventgraph, edge_colormap=None, display=True, **kwargs)
 
     G = eventgraph.create_networkx_aggregate_graph(edge_colormap)
 
-    nx.set_node_attributes(G, 'shape', 'circle')
-    nx.set_node_attributes(G, 'label', '')
-    nx.set_node_attributes(G, 'fillcolor', 'grey')
-    nx.set_node_attributes(G, 'style', 'filled')
-    nx.set_node_attributes(G, 'fixedsize', 'true')
-    nx.set_node_attributes(G, 'width', 0.3)
+    nx.set_node_attributes(G, 'circle', 'shape')
+    nx.set_node_attributes(G, '', 'label')
+    nx.set_node_attributes(G, 'grey', 'fillcolor')
+    nx.set_node_attributes(G, 'filled', 'style')
+    nx.set_node_attributes(G, 'true', 'fixedsize')
+    nx.set_node_attributes(G, 0.3, 'width')
 
-    nx.set_edge_attributes(G, 'style', "bold")
+    nx.set_edge_attributes(G, "bold", 'style')
     if eventgraph.directed:
-        nx.set_edge_attributes(G, 'arrowhead', "open")  # normal open halfopen vee
-        nx.set_edge_attributes(G, 'arrowsize', 2)  # normal open halfopen vee
+        nx.set_edge_attributes(G, "open", 'arrowhead')  # normal open halfopen vee
+        nx.set_edge_attributes(G, 2, 'arrowsize')  # normal open halfopen vee
 
     A = nx.drawing.nx_pydot.to_pydot(G)
 
@@ -66,7 +66,7 @@ def plot_event_graph(eventgraph, event_colormap=None, remove_singles=False, disp
         kwargs:
 
     Returns:
-        A ()L
+        A ():
     """
 
     # This needs changing.
@@ -75,18 +75,21 @@ def plot_event_graph(eventgraph, event_colormap=None, remove_singles=False, disp
     if 'ratio' not in kwargs.keys():
         kwargs['ratio'] = 0.5
 
+    if "edge_colormap" in kwargs.keys():
+        raise Exception("Did you mean 'event_colormap'?")
+
     G = eventgraph.create_networkx_event_graph(event_colormap)
 
-    nx.set_node_attributes(G, 'circle', 'shape')
+    nx.set_node_attributes(G, 'shape', 'circle')
 
-    nx.set_node_attributes(G, 'fontsize', 8)
+    nx.set_node_attributes(G, 8, 'fontsize')
 
-    nx.set_node_attributes(G, 'style', 'filled')
-    nx.set_node_attributes(G, 'fixedsize', 'true')
-    nx.set_node_attributes(G, 'width', 0.3)
+    nx.set_node_attributes(G, 'filled', 'style')
+    nx.set_node_attributes(G, 'true', 'fixedsize')
+    nx.set_node_attributes(G, 0.3, 'width')
 
-    nx.set_edge_attributes(G, 'arrowhead', 'open')  # normal open halfopen vee
-    nx.set_edge_attributes(G, 'style', 'bold')
+    nx.set_edge_attributes(G, 'open', 'arrowhead')  # normal open halfopen vee
+    nx.set_edge_attributes(G, 'bold', 'style')
 
     if remove_singles:
         ins = nx.in_degree_centrality(G)

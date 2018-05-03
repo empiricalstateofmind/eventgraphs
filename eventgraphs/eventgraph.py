@@ -487,10 +487,10 @@ class EventGraph(object):
             if (len(event.target) == 0) and isinstance(event.target, Iterable):
                 G.add_node(event.source)
             elif isinstance(event.target, str) or isinstance(event.target, int):
-                G.add_edge(event.source, event.target, {'type': event.type, 'color': edge_colormap[event.type]})
+                G.add_edge(event.source, event.target, **{'type': event.type, 'color': edge_colormap[event.type]})
             else:
                 for target in event.target:
-                    G.add_edge(event.source, target, {'type': event.type, 'color': edge_colormap[event.type]})
+                    G.add_edge(event.source, target, **{'type': event.type, 'color': edge_colormap[event.type]})
 
         return G
 
@@ -517,10 +517,10 @@ class EventGraph(object):
             event_colormap = defaultdict(lambda: 'grey')
 
         for ix, event in self.events.iterrows():
-            G.add_node(ix, {'type': event.type, 'fillcolor': event_colormap[event.type]})
+            G.add_node(ix, **{'type': event.type, 'fillcolor': event_colormap[event.type]})
 
         for _, edge in self.eg_edges.iterrows():
-            G.add_edge(edge.source, edge.target, {'delta': edge.delta, 'motif': edge.motif})
+            G.add_edge(edge.source, edge.target, **{'delta': edge.delta, 'motif': edge.motif})
 
         return G
 
