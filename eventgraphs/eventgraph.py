@@ -19,7 +19,7 @@ import json
 from collections import defaultdict
 from collections.abc import Iterable
 from copy import deepcopy
-from itertools import product
+from itertools import product, combinations
 
 import numpy as np
 import pandas as pd
@@ -161,7 +161,7 @@ class EventGraph(object):
             raise BadInputError(
                 "Events must be a DataFrame ({} passed), or passed through classmethods.".format(type(self.events)))
 
-        self.directed = True
+        self.directed = kwargs.get('directed', True)
         if 'target' not in self.events.columns:
             self.events['target'] = np.empty((len(self.events), 0)).tolist()
             self.directed = False  # Efficiency savings to be had if we treat seperately.
@@ -511,22 +511,30 @@ class EventGraph(object):
         except ImportError:
             raise ImportError("Networkx package required to create graphs.")
 
-        if self.directed:
-            G = nx.DiGraph()
-        else:
-            G = nx.Graph()
-
         if edge_colormap is None:
             edge_colormap = defaultdict(lambda: 'black')
 
-        for _, event in self.events.iterrows():
-            if (len(event.target) == 0) and isinstance(event.target, Iterable):
-                G.add_node(event.source)
-            elif isinstance(event.target, str) or isinstance(event.target, int):
-                G.add_edge(event.source, event.target, **{'type': event.type, 'color': edge_colormap[event.type]})
-            else:
-                for target in event.target:
-                    G.add_edge(event.source, target, **{'type': event.type, 'color': edge_colormap[event.type]})
+        if self.directed:
+            G = nx.DiGraph()
+
+            for _, event in self.events.iterrows():
+                typed = ('type' in self.events.columns)
+                attrs = {'type': event.type, 'color': edge_colormap[event.type]} if typed  else {'color':'black'}
+                if (len(event.target) == 0) and isinstance(event.target, Iterable):
+                    G.add_node(event.source)
+                elif isinstance(event.target, str) or isinstance(event.target, int):
+                    G.add_edge(event.source, event.target, **attrs)
+                else:
+                    for target in event.target:
+                        G.add_edge(event.source, target, **attrs)
+
+        else:
+            G = nx.Graph()
+
+            for _, event in self.events.iterrows():
+                typed = ('type' in self.events.columns)
+                attrs = {'type': event.type, 'color': edge_colormap[event.type]} if typed  else {'color':'black'}
+                G.add_edges_from(combinations(event.source, 2), **attrs)
 
         return G
 
@@ -552,8 +560,11 @@ class EventGraph(object):
         if event_colormap is None:
             event_colormap = defaultdict(lambda: 'grey')
 
+        typed = ('type' in self.events.columns)
+
         for ix, event in self.events.iterrows():
-            G.add_node(ix, **{'type': event.type, 'fillcolor': event_colormap[event.type]})
+            attrs = {'type': event.type, 'fillcolor': event_colormap[event.type]} if typed else {'fillcolor':'grey'}
+            G.add_node(ix, **attrs)
 
         for _, edge in self.eg_edges.iterrows():
             G.add_edge(edge.source, edge.target, **{'delta': edge.delta, 'motif': edge.motif})
@@ -608,7 +619,8 @@ class EventGraph(object):
                    'events': events,
                    'events_meta': events_meta,
                    'graph_rules': self.event_graph_rules,
-                   '_event_pair_processed': _event_pair_processed
+                   '_event_pair_processed': _event_pair_processed,
+                   'directed':self.directed
                    }
 
         return self.__class__(**payload)
@@ -718,7 +730,8 @@ class EventGraph(object):
                    'events': events,
                    'events_meta': events_meta,
                    'graph_rules': self.event_graph_rules,
-                   '_event_pair_processed': _event_pair_processed
+                   '_event_pair_processed': _event_pair_processed,
+                   'directed':self.directed
                    }
 
         return self.__class__(**payload)
@@ -768,7 +781,8 @@ class EventGraph(object):
                        'events_meta': ast.literal_eval(self.events_meta.to_json(orient='records')),
                        'eg_edges': ast.literal_eval(self.eg_edges.to_json(orient='records')),
                        'graph_rules': "teg",  # self.event_graph_rules, # omitted as function is not serialisable.
-                       'built': True
+                       'built': True,
+                       'directed':self.directed
                        }
 
             with open(fp, 'w', encoding='utf-8') as file:
