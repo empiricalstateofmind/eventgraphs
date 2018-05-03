@@ -420,6 +420,26 @@ class EventGraph(object):
             self.eg_edges = pd.DataFrame.from_dict(eg_edges, orient='index')
             self.eg_edges.columns = ['source', 'target', 'delta']
 
+    def randomize_event_times(self, seed=None):
+        """
+        Shuffles the times for all events. 
+
+        Can only be called before the event graph is built.
+
+        Input:
+            seed (int): The seed for the random shuffle [default=None].
+
+        Returns:
+            None
+        """
+
+        if hasattr(self, 'eg_edges'):
+            raise Exception("Event Graph has already been built. To randomize data create a new EventGraph object.")
+
+        self.events.time = self.events.time.sample(frac=1, random_state=seed).values
+        self.events = self.events.sort_values(by='time').reset_index(drop=True)
+
+
     def calculate_edge_motifs(self, edge_type=None, condensed=False):
         """
         Calculates the two-event motif for all edges of the event graph.
