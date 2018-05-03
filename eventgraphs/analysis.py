@@ -73,7 +73,7 @@ def calculate_component_distribution(eventgraph, normalize=True, cumulative=Fals
     """
 
     if 'component' not in eventgraph.events_meta.columns:
-        eventgraph._generate_eg_matrix()
+        eventgraph.generate_eg_matrix()
 
     component_ixs = csg.connected_components(eventgraph.eg_matrix,
                                              directed=True,
@@ -108,7 +108,7 @@ def calculate_component_distribution_over_delta(eventgraph, delta_range, normali
     if hasattr(eventgraph, 'eg_matrix'):
         eg_matrix = deepcopy(eventgraph.eg_matrix)
     else:
-        eg_matrix = deepcopy(eventgraph._generate_eg_matrix())
+        eg_matrix = deepcopy(eventgraph.generate_eg_matrix())
 
     largest_component = {}
     component_distributions = {}
