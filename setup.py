@@ -1,13 +1,21 @@
 from setuptools import setup
 
+def readme():
+    with open('README.md') as f:
+        return f.read()
+
 setup(name='eventgraphs',
       version='0.1',
-      description='Finding temporal components and motifs in temporal networks',
-      long_description='Finding temporal components and motifs in temporal networks',
+      description="""Creating event graphs from temporal network event sequence data (clickstreams, messages, contacts,
+                  etc.).""",
+      long_description=readme(),
       classifiers=[
         'Programming Language :: Python :: 3.5',
+        'Development Status :: v0.1 - Alpha',
+        'License :: OSI Approved :: Apache License',
+        'Topic :: Data Science :: Temporal Networks',
       ],
-      keywords='temporal motifs networks',
+      keywords='temporal motifs networks events clickstreams higher-order',
       url='https://github.com/empiricalstateofmind/eventgraph',
       author='Andrew Mellor',
       author_email='mellor91@hotmail.co.uk',
@@ -18,7 +26,8 @@ setup(name='eventgraphs',
           'pandas',
           'numpy',
           'matplotlib',
-          'scipy'
+          'scipy',
+          'ipython'
       ],
       include_package_data=True,
       zip_safe=False)
