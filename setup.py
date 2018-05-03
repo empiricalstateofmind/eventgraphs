@@ -10,7 +10,7 @@ setup(name='eventgraphs',
                   etc.).""",
       long_description=readme(),
       classifiers=[
-        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
         'Development Status :: v0.1 - Alpha',
         'License :: OSI Approved :: Apache License',
         'Topic :: Data Science :: Temporal Networks',
@@ -30,4 +30,7 @@ setup(name='eventgraphs',
           'ipython'
       ],
       include_package_data=True,
-      zip_safe=False)
+      zip_safe=False,
+      test_suite='nose.collector',
+      tests_require=['nose'],
+      )
