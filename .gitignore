@@ -9,3 +9,5 @@ pre-commit.sh
 .dropbox.attr
 *.json
 *.egg-info
+build/
+dist/
