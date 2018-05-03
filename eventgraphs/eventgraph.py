@@ -70,9 +70,11 @@ class EventGraph(object):
     # TO DO, along with other magic methods where needed.
     def __repr__(self):
         status = 'built' if hasattr(self, 'eg_edges') else 'unbuilt'
-        return "<EventGraph with {} nodes and {} events (status: {})>".format(self.N,
-                                                                              self.M,
-                                                                              status)
+        edges = len(self.eg_edges) if hasattr(self, 'eg_edges') else 0
+        return "<EventGraph with {} nodes, {} events, and {} edges (status: {})>".format(self.N,
+                                                                                         self.M,
+                                                                                         edges,
+                                                                                         status)
 
     def __len__(self):
         return self.M
