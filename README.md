@@ -1,6 +1,6 @@
-# Generalised Event Graphs
+# Eventgraphs [![PyPI version](https://img.shields.io/pypi/v/eventgraphs.svg)](https://pypi.org/project/eventgraphs/)
 
-A python library for analysing temporal networks.
+A Python library for analysing temporal networks.
 
 #### Features:
 
@@ -15,6 +15,6 @@ Please cite the following papers when using:
 
 **Generalised Event Graphs**. *Andrew Mellor* (2018)
 
-**The Temporal Event Graph**. *Andrew Mellor* (2017)
-[ArXiv Link](https://arxiv.org/abs/1706.02128)
+**The Temporal Event Graph**. *Andrew Mellor* (2017) [[Journal of Complex Networks](https://academic.oup.com/comnet/advance-article-abstract/doi/10.1093/comnet/cnx048/4360827)]
+[[ArXiv](https://arxiv.org/abs/1706.02128)] 
 
