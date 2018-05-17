@@ -606,13 +606,13 @@ class EventGraph(object):
 
         if not hasattr(self.events_meta, 'component'):
             self.connected_components_indices()
-        if not hasattr(self.eg_edges, 'component'):
-            self.eg_edges = pd.merge(self.eg_edges, self.events_meta, left_on='source', right_index=True)
-
+           
         event_ids = self.events_meta.component == ix
         events = self.events[event_ids]
-        eg_edges = self.eg_edges[self.eg_edges.component == ix]
         events_meta = self.events_meta[event_ids]
+
+        edge_ids = pd.merge(self.eg_edges, events_meta, left_on='source', right_index=True).index
+        eg_edges = self.eg_edges.loc[edge_ids]
         _event_pair_processed = {row.source: {row.target: ix} for ix, row in eg_edges.iterrows()}
 
         payload = {'eg_edges': eg_edges,
@@ -625,12 +625,13 @@ class EventGraph(object):
 
         return self.__class__(**payload)
 
-    def connected_components(self, min_size=None, top=None):
+    def connected_components(self, use_previous=False, min_size=None, top=None):
         """
         Returns the connected components of the event graph as a list of
         EventGraphs objects.
 
         Input:
+            use_previous (bool): If True, use the previously calculated components (even if they have changes with event/edge manipulation).
             min_size (int): The minimum number of events for a component to be counted (cannot be used with top).
             top (int): The largest 'top' components in the event graph (cannot be used with min_size)
 
@@ -642,7 +643,7 @@ class EventGraph(object):
         if (min_size is not None) and (top is not None):
             raise Exception("Please specify only one of 'min_size' or 'top'")
 
-        if not hasattr(self.events_meta, 'component'):
+        if not ('component' in self.events_meta.columns) or (not use_previous):
             self.connected_components_indices()
 
         component_sizes = self.events_meta.component.value_counts()
