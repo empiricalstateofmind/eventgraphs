@@ -11,3 +11,5 @@ pre-commit.sh
 *.egg-info
 build/
 dist/
+docs/
+*.code-workspace
