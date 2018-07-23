@@ -121,7 +121,7 @@ def calculate_component_distribution_over_delta(eventgraph, delta_range, normali
         largest_component (pd.Series):
     """
 
-    if hasattr(eventgraph, 'eg_matrix'):
+    if eventgraph.eg_matrix is not None:
         eg_matrix = deepcopy(eventgraph.eg_matrix)
     else:
         eg_matrix = deepcopy(eventgraph.generate_eg_matrix())
@@ -142,13 +142,60 @@ def calculate_component_distribution_over_delta(eventgraph, delta_range, normali
 
     return component_distributions, largest_component
 
+def calculate_component_durations_over_delta(eventgraph, delta_range, normalize=True):
+    """
+    Calculates the component duration distribution over a range of dt values.
 
-def calculate_motif_entropy(eventgraph, normalize=False):
+    dt range must be less than that of the eventgraph.
+
+    Input:
+        eventgraph (EventGraph):
+        delta_range (array):
+        normalize (bool): [default=True]
+
+    Returns:
+        duration_distributions (dict):
+        largest_durations (pd.Series):
+    """
+
+    if eventgraph.eg_matrix is not None:
+        eg_matrix = deepcopy(eventgraph.eg_matrix)
+    else:
+        eg_matrix = deepcopy(eventgraph.generate_eg_matrix())
+
+    largest_duration = {}
+    duration_distributions = {}
+    for dt in delta_range[::-1]:
+        eg_matrix.data = np.where(eg_matrix.data <= dt, eg_matrix.data, 0)
+        eg_matrix.eliminate_zeros()
+        component_ixs = csg.connected_components(eg_matrix,
+                                                 directed=True,
+                                                 connection='weak',
+                                                 return_labels=True)[1]
+
+        durations = []
+        for c in set(component_ixs):
+            events = np.where(component_ixs==c)
+            lower, upper = events[0][0], events[0][-1]
+            first = eventgraph.events.loc[lower]
+            last = eventgraph.events.loc[upper]
+            duration = last.time - first.time
+            durations.append(duration)
+
+        durations = pd.Series(durations).value_counts(normalize=normalize).sort_index()
+        duration_distributions[dt] = durations
+        largest_duration[dt] = durations.index.max()
+    largest_duration = pd.Series(largest_duration)
+
+    return duration_distributions, largest_duration
+
+def calculate_motif_entropy(eventgraph, miller_correct=True, normalize=False):
     """
     Calculate the motif entropy
 
     Input:
         eventgraph (EventGraph):
+        miller_correct (bool): Apply the Miller bias correction for finite size samples[default=True]
         normalize (bool): [default=False]
 
     Returns:
@@ -156,16 +203,26 @@ def calculate_motif_entropy(eventgraph, normalize=False):
     """
 
     motifs = calculate_motif_distribution(eventgraph)
-    motif_entropy = -sum([p * np.log(p) for p in motifs.values if p > 0])
+    motif_entropy = -sum([p * np.log2(p) for p in motifs.values if p > 0])
+
+    if miller_correct:
+        K = 1 # Currently we do not have an easy way to add in the maximum number of motifs, however this does not matter for comparison.
+        N = len(eventgraph.eg_edges)
+        return motif_entropy + (K-1)/(2*N)
+    if normalize:
+        return motif_entropy
+
     return motif_entropy
 
 
-def calculate_iet_entropy(eventgraph):
+def calculate_iet_entropy(eventgraph, miller_correct=True):
     """
 
 
     Input:
         eventgraph (EventGraph):
+        miller_correct (bool): Apply the Miller bias correction for finite size samples[default=True]
+
 
     Returns:
         iet_entropy (float):
@@ -178,6 +235,12 @@ def calculate_iet_entropy(eventgraph):
     divisions = 10000
     iets = iets.reindex(np.arange(0, 1, divisions), method='nearest')
     iet_entropy = -sum([(1 / (divisions - 1)) * val * np.log2(val) for val in iets.values if val != 0])
+
+    # if miller_correct:
+    #     K = divisions
+    #     N = len(eventgraph.eg_edges)
+    #     return iet_entropy + (K-1)/(2*N)
+
     return iet_entropy
 
 
