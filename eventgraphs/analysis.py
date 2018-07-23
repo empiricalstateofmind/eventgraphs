@@ -189,13 +189,14 @@ def calculate_component_durations_over_delta(eventgraph, delta_range, normalize=
 
     return duration_distributions, largest_duration
 
-def calculate_motif_entropy(eventgraph, miller_correct=True, normalize=False):
+def calculate_motif_entropy(eventgraph, miller_correct=False,  k=None, normalize=False):
     """
     Calculate the motif entropy
 
     Input:
         eventgraph (EventGraph):
         miller_correct (bool): Apply the Miller bias correction for finite size samples[default=True]
+        k (int): Number of possible motif combinations (should be automated at some point).
         normalize (bool): [default=False]
 
     Returns:
@@ -206,11 +207,12 @@ def calculate_motif_entropy(eventgraph, miller_correct=True, normalize=False):
     motif_entropy = -sum([p * np.log2(p) for p in motifs.values if p > 0])
 
     if miller_correct:
-        K = 1 # Currently we do not have an easy way to add in the maximum number of motifs, however this does not matter for comparison.
+        if k is None:
+            raise Exception("If 'miller_correct' is True, then 'k', the number of possible motifs, must be provided")
         N = len(eventgraph.eg_edges)
-        return motif_entropy + (K-1)/(2*N)
+        return motif_entropy + (k-1)/(2*N)
     if normalize:
-        return motif_entropy
+        return motif_entropy/ np.log2(k)
 
     return motif_entropy
 
@@ -235,11 +237,6 @@ def calculate_iet_entropy(eventgraph, miller_correct=True):
     divisions = 10000
     iets = iets.reindex(np.arange(0, 1, divisions), method='nearest')
     iet_entropy = -sum([(1 / (divisions - 1)) * val * np.log2(val) for val in iets.values if val != 0])
-
-    # if miller_correct:
-    #     K = divisions
-    #     N = len(eventgraph.eg_edges)
-    #     return iet_entropy + (K-1)/(2*N)
 
     return iet_entropy
 
