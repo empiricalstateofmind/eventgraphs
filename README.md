@@ -32,7 +32,7 @@ pip install git+https://github.com/empiricalstateofmind/eventgraphs
 
 ## Getting Started
 
-The best place to get started using EventGraphs is with the tutorial [here](/docs/eventgraphs_tutorial.ipynb).
+The best place to get started using EventGraphs is with the tutorial [here](/examples/eventgraphs_tutorial.ipynb).
 
 ## References
 
