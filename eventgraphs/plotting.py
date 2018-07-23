@@ -201,7 +201,7 @@ def plot_barcode(eventgraph, delta_ub, top, ax=None):
     return ax
 
 
-def plot_cluster_timeseries(eventgraph, interval_width, normalized=False, ax=None, plotting_kwargs=None):
+def plot_cluster_timeseries(eventgraph, interval_width, normalized=False, ax=None, plot_unclustered=False, plotting_kwargs=None):
     """
 
 
@@ -226,6 +226,8 @@ def plot_cluster_timeseries(eventgraph, interval_width, normalized=False, ax=Non
         plotting_kwargs = {'logy': False, 'linestyle': '--', 'marker': 's'}
 
     for cluster, ts in timeseries.items():
+        if cluster==0 and not plot_unclustered:
+            continue
         label = cluster if cluster > 0 else 'Unclustered'
         if normalized:
             (ts / total).plot(label=label, ax=ax, **plotting_kwargs)
