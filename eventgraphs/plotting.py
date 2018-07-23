@@ -251,8 +251,12 @@ def plot_component_dendrogram(Z, ax=None, dendrogram_kwargs=None):
     if ax is None:
         ax = plt.gca()
     if dendrogram_kwargs is None:
-        dendrogram_kwargs = {'leaf_rotation': 90, 'truncate_mode': 'lastp', 'p': 100,
-                             'no_labels': True, 'distance_sort': False, 'count_sort': True,
+        dendrogram_kwargs = {'leaf_rotation': 90, 
+                             'truncate_mode': 'lastp', 
+                             'p': 100,
+                             'no_labels': True, 
+                             'distance_sort': False, 
+                             'count_sort': True,
                              'above_threshold_color': 'k', 'color_threshold': 80}
 
     ax.set_ylabel('Distance')
