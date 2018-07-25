@@ -217,28 +217,42 @@ def calculate_motif_entropy(eventgraph, miller_correct=False,  k=None, normalize
     return motif_entropy
 
 
-def calculate_iet_entropy(eventgraph, miller_correct=True):
+def calculate_iet_entropy(eventgraph, normalize=True, miller_correct=True, divisions=10):
     """
 
 
     Input:
         eventgraph (EventGraph):
-        miller_correct (bool): Apply the Miller bias correction for finite size samples[default=True]
-
+        normalize (bool): Normalise the entropy by the maximum entropy possible [default=True]
+        miller_correct (bool): Apply the Miller bias correction for finite size samples [default=True]
+        divisions (int): How many bins to divide the time-space into [default=10]
 
     Returns:
         iet_entropy (float):
     """
 
-    iets = calculate_iet_distribution(eventgraph, cumulative=True)
-    max_iet = max(iets.index)
-    if max_iet > 0:
-        iets.index = [i / max_iet for i in iets.index]
-    divisions = 10000
-    iets = iets.reindex(np.arange(0, 1, divisions), method='nearest')
-    iet_entropy = -sum([(1 / (divisions - 1)) * val * np.log2(val) for val in iets.values if val != 0])
+    iets = eventgraph.eg_edges.delta
+    observations = len(iets)
+    
+    if iets.nunique() == 1:
+        bins = divisions
+    else:
+        bins = np.linspace(iets.min(),iets.max(),divisions)
+    binned = pd.cut(iets, bins=bins, include_lowest=True).value_counts(normalize=True).sort_index()
 
-    return iet_entropy
+    iet_entropy = -sum([val * np.log2(val) for val in binned.values if val != 0])
+        
+    if miller_correct:
+        iet_entropy = iet_entropy + (divisions-1)/(2*observations)
+        if normalize:
+            return iet_entropy/(np.log2(divisions)+(divisions-1)/(2*observations))
+        else:
+            return iet_entropy
+        
+    if normalize:
+        return iet_entropy/np.log2(divisions)
+    else:
+        return iet_entropy
 
 
 def calculate_activity(eventgraph, unit=1):
