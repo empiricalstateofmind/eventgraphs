@@ -454,6 +454,7 @@ class EventGraph(object):
 
         self.events.time = self.events.time.sample(frac=1, random_state=seed).values
         self.events = self.events.sort_values(by='time').reset_index(drop=True)
+        self.generate_node_event_incidence()
 
 
     def calculate_edge_motifs(self, edge_type=None, condensed=False):
