@@ -18,16 +18,16 @@ A Python library for analysing sequences of event-based data and temporal networ
 For the latest version, installation from Github is recommended. 
 The PyPI package is updated periodically.
 
+#### Install from Github (latest version, recommended)
+
+```bash
+pip install git+https://github.com/empiricalstateofmind/eventgraphs
+```
+
 #### Install from PyPI
 
 ```bash
 pip install eventgraphs
-```
-
-#### Install from Github (latest version)
-
-```bash
-pip install git+https://github.com/empiricalstateofmind/eventgraphs
 ```
 
 ## Getting Started
@@ -36,10 +36,9 @@ The best place to get started using EventGraphs is with the tutorial [here](/exa
 
 ## References
 
-The following papers were :
-
-**Classifying Conversation in Digital Communication**. *Andrew Mellor* (2018) [[Arxiv](https://arxiv.org/abs/1801.10527)]
+**Analysing Collective Behaviour in Temporal Networks Using Event Graphs and Temporal Motifs**. *Andrew Mellor* (2018) [[Arxiv](https://arxiv.org/abs/1801.10527)]
 
 **The Temporal Event Graph**. *Andrew Mellor* (2017) [[Journal of Complex Networks](https://academic.oup.com/comnet/advance-article-abstract/doi/10.1093/comnet/cnx048/4360827)]
 [[ArXiv](https://arxiv.org/abs/1706.02128)] 
 
+Please consider citing these papers if you use this code for further research.
