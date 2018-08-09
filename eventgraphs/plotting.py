@@ -297,9 +297,13 @@ def plot_component_embedding(X, clusters=None, ax=None):
 
     else:
         scatter = ax.scatter(X[:, 0], X[:, 1], c=['C{}'.format(c - 1) for c in clusters], marker='o', label=clusters)
-        handles = [mlines.Line2D([], [], color='C{}'.format(c - 1), marker='o', linestyle='',
+        handles = [mlines.Line2D([], 
+                                 [], 
+                                 color='C{}'.format(c - 1), 
+                                 marker='o', 
+                                 linestyle='', 
                                  label='Cluster {}'.format(c)) for c in sorted(clusters.unique())]
-        ax.legend(loc='best', handles=handles, fontsize=12, frameon=True, fancybox=True)
+        ax.legend(loc='best', handles=handles)
 
     ax.set_xlabel('Dimension 1')
     ax.set_ylabel('Dimension 2')
