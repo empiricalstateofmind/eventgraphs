@@ -78,8 +78,8 @@ class EventGraph(object):
 
     References:
         [1] A. Mellor, The Temporal Event Graph, Jouurnal of Complex Networks (2017)
-        [2] A. Mellor, Classifying Conversation in Digital Communication, EPJ Data Science (2018)
-        [3] A. Mellor, Generalised Event Graphs and Temporal Motifs, In prepartion (2018)
+        [2] A. Mellor, In prepartion (2018)
+        [3] A. Mellor, In prepartion (2018)
 
     """
 
