@@ -226,7 +226,7 @@ def assign_to_cluster(observation, cluster_centers):
     return (cluster_centers.subtract(observation, axis=0) ** 2).sum().idxmin()
 
 
-def reduce_feature_dimensionality(features, ndim=2, method='pca', **tsne_kwargs):
+def reduce_feature_dimensionality(features, ndim=2, method='pca', rescale=False, return_scalers=False, **tsne_kwargs):
     """
     Reduce the dimensionality of the component features using PCA or t-SNE (or both).
 
@@ -242,15 +242,32 @@ def reduce_feature_dimensionality(features, ndim=2, method='pca', **tsne_kwargs)
 
     if method.lower() == 'pca':
         pca = PCA(ndim)
+        
+        if rescale:
         X = StandardScaler().fit_transform(features.values)
+        else:
+            X = features.values
+
+        if return_scalers:
+            return pca.fit_transform(X), pca
         return pca.fit_transform(X)
 
     if method.lower() == 'tsne':
+
+        if rescale:
         X = StandardScaler().fit_transform(features.values)
+        else:
+            X = features.values
+
         if X.shape[1] > 50:
             pca = PCA(50)
             X = pca.fit_transform(X)
+        else:
+            pca = None
         if tsne_kwargs is None:
             tsne_kwargs = {'perplexity': 40, 'n_iter': 1000, 'verbose': 1}
         tsne = TSNE(n_components=ndim, **tsne_kwargs)
+
+        if return_scalers:
+            return tsne.fit_transform(X), (pca, tsne) # Code is currently untidy and verbose.
         return tsne.fit_transform(X)
