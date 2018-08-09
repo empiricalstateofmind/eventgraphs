@@ -189,13 +189,13 @@ def calculate_component_durations_over_delta(eventgraph, delta_range, normalize=
 
     return duration_distributions, largest_duration
 
-def calculate_motif_entropy(eventgraph, miller_correct=False,  k=None, normalize=False):
+def calculate_motif_entropy(eventgraph, miller_correct=False,  k=None, normalize=True):
     """
     Calculate the motif entropy
 
     Input:
         eventgraph (EventGraph):
-        miller_correct (bool): Apply the Miller bias correction for finite size samples[default=True]
+        miller_correct (bool): Apply the Miller bias correction for finite size samples [default=True]
         k (int): Number of possible motif combinations (should be automated at some point).
         normalize (bool): [default=False]
 
@@ -206,18 +206,24 @@ def calculate_motif_entropy(eventgraph, miller_correct=False,  k=None, normalize
     motifs = calculate_motif_distribution(eventgraph)
     motif_entropy = -sum([p * np.log2(p) for p in motifs.values if p > 0])
 
+    if k is None and (miller_correct or normalize):
+        raise Exception("If 'miller_correct' or 'normalize' is True, then 'k', the number of possible motifs, must be provided")
+
     if miller_correct:
-        if k is None:
-            raise Exception("If 'miller_correct' is True, then 'k', the number of possible motifs, must be provided")
+        
         N = len(eventgraph.eg_edges)
-        return motif_entropy + (k-1)/(2*N)
     if normalize:
-        return motif_entropy/ np.log2(k)
+            return (motif_entropy + (k-1)/(2*N))/(np.log2(k) + (k-1)/(2*N))
+        else:
+            return (motif_entropy + (k-1)/(2*N))
+
+    if normalize:
+        return motif_entropy/np.log2(k)
 
     return motif_entropy
 
 
-def calculate_iet_entropy(eventgraph, normalize=True, miller_correct=True, divisions=10):
+def calculate_iet_entropy(eventgraph, normalize=True, miller_correct=False, divisions=10):
     """
 
 
@@ -255,12 +261,13 @@ def calculate_iet_entropy(eventgraph, normalize=True, miller_correct=True, divis
         return iet_entropy
 
 
-def calculate_activity(eventgraph, unit=1):
+def calculate_activity(eventgraph, unit=1, rescale=True):
     """
 
     Input:
         eventgraph (EventGraph):
         unit (int): [default=1]
+        rescale (bool): Use 1-e^(-t) instead to ensure activity in [0,1] [default=True]
 
     Returns:
         activity (float):
@@ -271,6 +278,9 @@ def calculate_activity(eventgraph, unit=1):
         activity = np.inf
     else:
         activity = (len(eventgraph.events) / duration) * unit
+
+    if rescale:
+        return 1-np.exp(-activity)
     return activity
 
 
@@ -329,37 +339,43 @@ def calculate_reciprocity_ratio(G):
         return 0.0
 
 
-def calculate_degree_assortativity(G):
+def calculate_degree_imbalance(G, normalize=True, rescale=True):
     """
-    Calculates a 'fake' degree assortativity. To be ironed out as a concept.
+    Calculates a 'fake' degree assortativity, called degree imbalance. To be ironed out as a concept.
 
     Input:
         G (nx.Graph/nx.DiGraph):
+        normalize (bool): Normalize values to lie in [-1,1]
+        rescale (bool): Rescale values to [0,1]
     Return:
-        assorts (dict):
+        imbalances (dict):
     """
 
     N = len(G.nodes())
     if N <= 1:
-        return {'assort_ii': 0,
-                'assort_io': 0,
-                'assort_oi': 0,
-                'assort_oo': 0, }
+        return {'imbalance_ii': 0,
+                # 'imbalance_io': 0,
+                'imbalance_oi': 0,
+                'imbalance_oo': 0, }
 
     degrees = pd.DataFrame([(G.out_degree(a), G.out_degree(b), G.in_degree(a), G.in_degree(b)) for a, b in G.edges()],
                            columns=['o_source', 'o_target', 'i_source', 'i_target'])
-    assorts = {}
-    for alpha, beta in [('o', 'o'), ('o', 'i'), ('i', 'i'), ('i', 'o')]:
+    imbalances = {}
+    for alpha, beta in [('o', 'o'), ('o', 'i'), ('i', 'i'),]: # ('i', 'o') is not needed as always zero.
         c1 = '{}_source'.format(alpha)
         c2 = '{}_target'.format(beta)
 
         x = (degrees[c1] - degrees[c2]).mean()
         if x == 0:
-            assorts['assort_{}{}'.format(alpha, beta)] = 0.0
+            imbalances['imbalance_{}{}'.format(alpha, beta)] = 0.0
         else:
-            assorts['assort_{}{}'.format(alpha, beta)] = x / (degrees[c1] - degrees[c2]).abs().max()
+            normalization = (degrees[c1] - degrees[c2]).abs().max() if normalize else 1
+            imbalances['imbalance_{}{}'.format(alpha, beta)] = x / normalization
 
-    return assorts
+    if rescale is not None:
+        imbalances = {key:(val+1)/2 for key,val in imbalances.items()}
+
+    return imbalances
 
 
 def calculate_cluster_timeseries(eventgraph, interval_width):

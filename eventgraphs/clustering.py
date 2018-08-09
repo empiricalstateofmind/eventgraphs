@@ -31,7 +31,7 @@ from .analysis import (calculate_motif_distribution,
                        calculate_edge_density,
                        calculate_clustering_coefficient,
                        calculate_reciprocity_ratio,
-                       calculate_degree_assortativity
+                       calculate_degree_imbalance
                        )
 
 EVENT_GRAPH_FEATURES = [{'name': 'motifs',
@@ -82,8 +82,8 @@ AGGREGATE_GRAPH_FEATURES = [{'name': 'edge_density',
                              'function': calculate_reciprocity_ratio,
                              'kwargs': {},
                              'scale': False},
-                            {'name': 'degree_assortativity',
-                             'function': calculate_degree_assortativity,
+                            {'name': 'degree_imbalance',
+                             'function': calculate_degree_imbalance,
                              'kwargs': {},
                              'scale': False}]
 
