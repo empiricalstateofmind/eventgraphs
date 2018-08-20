@@ -15,7 +15,7 @@ A Python library for analysing sequences of event-based data and temporal networ
 
 ## Installation
 
-For the latest version, installation from Github is recommended. 
+For the latest version, installation from Github is recommended. S
 The PyPI package is updated periodically.
 
 #### Install from Github (latest version, recommended)
