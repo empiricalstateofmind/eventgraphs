@@ -15,7 +15,7 @@ class CompletitionTests(TestCase):
     """
 
     def setUp(self):
-        self.EG = EventGraph.from_file("test.json")
+        self.EG = EventGraph.from_file("./tests/test.json")
 
     def tearDown(self):
         self.EG = None
