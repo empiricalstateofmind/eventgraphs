@@ -3,7 +3,6 @@
 *.pyc
 *.ipynb_checkpoints/
 *.png
-tests/*.json
 pre-commit.sh
 .idea/
 .dropbox.attr
