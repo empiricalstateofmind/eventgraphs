@@ -74,7 +74,7 @@ def calculate_motif_distribution(eventgraph, normalize=True):
     return eventgraph.eg_edges.motif.value_counts(normalize=normalize)
 
 
-def calculate_component_distribution(eventgraph, normalize=True, cumulative=False, bins=None):
+def calculate_component_distribution(eventgraph, normalize=True, cumulative=False, bins=None, size_type='events'):
     """
 
 
@@ -83,6 +83,7 @@ def calculate_component_distribution(eventgraph, normalize=True, cumulative=Fals
         normalize (bool): [default=True]
         cumulative (bool): [default=False]
         bins (array): [default=None]
+		size_type (str): [default='events']
 
     Returns:
         component_dist (pd.Series):
@@ -91,12 +92,37 @@ def calculate_component_distribution(eventgraph, normalize=True, cumulative=Fals
     if 'component' not in eventgraph.events_meta.columns:
         eventgraph.generate_eg_matrix()
 
+	if size_type == 'nodes':
+		ne_matrix = eventgraph.generate_node_event_matrix()
+
     component_ixs = csg.connected_components(eventgraph.eg_matrix,
                                              directed=True,
                                              connection='weak',
                                              return_labels=True)[1]
 
+	
+	if size_type=='events':
     component_dist = pd.Series(component_ixs).value_counts().value_counts(normalize=normalize).sort_index()
+
+	elif size_type=='nodes':
+		sizes = []
+		for c in set(component_ixs):
+			events = np.where(component_ixs==c)[0]
+			nodes = (ne_matrix[:,events].sum(axis=1)>0).sum()
+			sizes.append(nodes)
+		component_dist = pd.Series(sizes).value_counts(normalize=normalize).sort_index()
+		
+	elif size_type=='duration':
+		sizes = []
+		for c in set(component_ixs):
+			events = np.where(component_ixs==c)[0]
+			lower, upper = events[0], events[-1]
+			first = eventgraph.events.loc[lower]
+			last = eventgraph.events.loc[upper]
+			duration = last.time - first.time
+			sizes.append(duration)
+		component_dist = pd.Series(sizes).value_counts(normalize=normalize).sort_index()
+	
     if cumulative:
         component_dist = component_dist.cumsum()
     if bins is not None:
@@ -105,9 +131,9 @@ def calculate_component_distribution(eventgraph, normalize=True, cumulative=Fals
     return component_dist
 
 
-def calculate_component_distribution_over_delta(eventgraph, delta_range, normalize=True):
+def calculate_component_distribution_over_delta(eventgraph, delta_range, normalize=True, size_type='events'):
     """
-    Calculates the component size distribution (# events) over a range of dt values.
+	Calculates the component size distribution (# events, # nodes, or duration) over a range of dt values.
 
     dt range must be less than that of the eventgraph.
 
@@ -115,6 +141,7 @@ def calculate_component_distribution_over_delta(eventgraph, delta_range, normali
         eventgraph (EventGraph):
         delta_range (array):
         normalize (bool): [default=True]
+		size (str): [default='events']
 
     Returns:
         component_distributions (dict):
@@ -125,6 +152,8 @@ def calculate_component_distribution_over_delta(eventgraph, delta_range, normali
         eg_matrix = deepcopy(eventgraph.eg_matrix)
     else:
         eg_matrix = deepcopy(eventgraph.generate_eg_matrix())
+	if size_type == 'nodes':
+		ne_matrix = eventgraph.generate_node_event_matrix()
 
     largest_component = {}
     component_distributions = {}
@@ -135,15 +164,38 @@ def calculate_component_distribution_over_delta(eventgraph, delta_range, normali
                                                  directed=True,
                                                  connection='weak',
                                                  return_labels=True)[1]
-        components = pd.Series(component_ixs).value_counts().value_counts(normalize=normalize).sort_index()
-        component_distributions[dt] = components
-        largest_component[dt] = components.index.max()
+
+		if size_type=='events':
+			sizes = pd.Series(component_ixs).value_counts().value_counts(normalize=normalize).sort_index()
+
+		elif size_type=='nodes':
+			sizes = []
+			for c in set(component_ixs):
+				events = np.where(component_ixs==c)[0]
+				nodes = (ne_matrix[:,events].sum(axis=1)>0).sum()
+				sizes.append(nodes)
+			sizes = pd.Series(sizes).value_counts(normalize=normalize).sort_index()
+		 
+		elif size_type=='duration':
+			sizes = []
+			for c in set(component_ixs):
+				events = np.where(component_ixs==c)[0]
+				lower, upper = events[0], events[-1]
+				first = eventgraph.events.loc[lower]
+				last = eventgraph.events.loc[upper]
+				duration = last.time - first.time
+				sizes.append(duration)
+			sizes = pd.Series(sizes).value_counts(normalize=normalize).sort_index()
+		
+		component_distributions[dt] = sizes
+		largest_component[dt] = sizes.index.max()
     largest_component = pd.Series(largest_component)
 
     return component_distributions, largest_component
 
 def calculate_component_durations_over_delta(eventgraph, delta_range, normalize=True):
     """
+	# DEPRECIATED #
     Calculates the component duration distribution over a range of dt values.
 
     dt range must be less than that of the eventgraph.
