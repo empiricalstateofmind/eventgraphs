@@ -1,5 +1,5 @@
-# Eventgraphs [![PyPI version](https://img.shields.io/pypi/v/eventgraphs.svg)](https://pypi.org/project/eventgraphs/) [![Travis CI](https://travis-ci.org/empiricalstateofmind/eventgraphs.svg?branch=master)](https://travis-ci.org/empiricalstateofmind/eventgraphs)
-
+# Eventgraphs [![PyPI version](https://img.shields.io/pypi/v/eventgraphs.svg)](https://pypi.org/project/eventgraphs/) [https://travis-ci.org/empiricalstateofmind/eventgraphs.svg?branch=master)](https://travis-ci.org/empiricalstateofmind/eventgraphs)
+<img src="https://travis-ci.org/empiricalstateofmind/eventgraphs.svg?branch=master" alt="build:passed">
 A Python library for analysing sequences of event-based data and temporal networks.
 
 ## Features
@@ -36,7 +36,9 @@ The best place to get started using EventGraphs is with the tutorial [here](/exa
 
 ## References
 
-**Analysing Collective Behaviour in Temporal Networks Using Event Graphs and Temporal Motifs**. *Andrew Mellor* (2018) [[Arxiv](https://arxiv.org/abs/1801.10527)]
+**Event Graphs: Advances and Applications of Second-Order Time-Unfolded Temporal Network Models**. *Andrew Mellor* (2018) [[ArXiv](https://arxiv.org/abs/1809.03457)]
+
+**Analysing Collective Behaviour in Temporal Networks Using Event Graphs and Temporal Motifs**. *Andrew Mellor* (2018) [[ArXiv](https://arxiv.org/abs/1801.10527)]
 
 **The Temporal Event Graph**. *Andrew Mellor* (2017) [[Journal of Complex Networks](https://academic.oup.com/comnet/advance-article-abstract/doi/10.1093/comnet/cnx048/4360827)]
 [[ArXiv](https://arxiv.org/abs/1706.02128)] 
