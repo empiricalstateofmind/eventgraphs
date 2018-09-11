@@ -1,5 +1,4 @@
-# Eventgraphs [![PyPI version](https://img.shields.io/pypi/v/eventgraphs.svg)](https://pypi.org/project/eventgraphs/) [https://travis-ci.org/empiricalstateofmind/eventgraphs.svg?branch=master)](https://travis-ci.org/empiricalstateofmind/eventgraphs)
-<img src="https://travis-ci.org/empiricalstateofmind/eventgraphs.svg?branch=master" alt="build:passed">
+# Eventgraphs [![PyPI version](https://img.shields.io/pypi/v/eventgraphs.svg)](https://pypi.org/project/eventgraphs/) <img src="https://travis-ci.org/empiricalstateofmind/eventgraphs.svg?branch=master" alt="build:passed">
 A Python library for analysing sequences of event-based data and temporal networks.
 
 ## Features
