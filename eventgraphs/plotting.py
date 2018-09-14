@@ -25,7 +25,7 @@ from matplotlib import collections as mcollect
 from scipy.cluster.hierarchy import dendrogram
 
 
-def plot_aggregate_graph(eventgraph, edge_colormap=None, display=True, **kwargs):
+def plot_aggregate_graph(eventgraph, edge_colormap=None, ax=None, minimum_size=None, **kwargs):
     """
     Plots the aggregate graph of nodes of an eventgraph.
 
@@ -34,105 +34,95 @@ def plot_aggregate_graph(eventgraph, edge_colormap=None, display=True, **kwargs)
     Input:
         eventgraph (EventGraph):
         edge_colormap (dict): [default=None]
-        display (bool): [default=True]
+        ax (plt.axis): [default=None]
+        minimum_size (int): [default=None]
         kwargs:
 
     Returns:
-        A ():
+        ax (plt.axis):
     """
+
+    if ax is None:
+        fig = plt.figure(**kwargs)
+        ax = fig.add_subplot(111)
 
     G = eventgraph.create_networkx_aggregate_graph(edge_colormap)
 
-    nx.set_node_attributes(G, 'circle', 'shape')
-    nx.set_node_attributes(G, '', 'label')
-    nx.set_node_attributes(G, 'grey', 'fillcolor')
-    nx.set_node_attributes(G, 'filled', 'style')
-    nx.set_node_attributes(G, 'true', 'fixedsize')
-    nx.set_node_attributes(G, 0.3, 'width')
+    if minimum_size is not None:
+        for component in list(nx.weakly_connected_components(G)):
+            if len(component) < minimum_size:
+                for node in component:
+                    G.remove_node(node)
 
-    nx.set_edge_attributes(G, "bold", 'style')
-    if eventgraph.directed:
-        nx.set_edge_attributes(G, "open", 'arrowhead')  # normal open halfopen vee
-        nx.set_edge_attributes(G, 2, 'arrowsize')  # normal open halfopen vee
+    edgecolors = nx.get_edge_attributes(G, 'color')
+    edges = list(edgecolors.keys())
+    colors = list(edgecolors.values())
 
-    A = nx.drawing.nx_pydot.to_pydot(G)
+    pos = nx.drawing.nx_pydot.pydot_layout(G, prog='neato')
 
-    A.set('layout', 'fdp')
-    A.set('size', 5)
-    A.set('ratio', 1)
-    A.set('dim', 2)
-    A.set('overlap', 'false')
-    A.set('mode', 'spring')
-    A.set('K', 1)
-    A.set('start', 3)
+    nx.draw_networkx_nodes(G, 
+                        pos=pos, 
+                        edgecolors='k',
+                        node_color='grey',
+                        ax=ax)
 
-    if display:
-        return Image(A.create(format='png'))
+    nx.draw_networkx_edges(G, 
+                        pos=pos,
+                        edge_color=colors,
+                        ax=ax);
 
-    return A
+    ax.axis('off');
+
+    return ax
 
 
-def plot_event_graph(eventgraph, event_colormap=None, remove_singles=False, display=True, **kwargs):
+def plot_event_graph(eventgraph, event_colormap=None, ax=None, time_scaled=False, minimum_size=None,**kwargs):
     """
 
     Input:
         eventgraph (EventGraph):
         event_colormap (dict): [default=None]
-        remove_singles (bool): [default=False]
+        ax (plt.axis): [default=None]
+        time_scaled (bool): [default=False]
+        minimum_size (int): [default=None]
         kwargs:
 
     Returns:
-        A ():
+        ax (plt.axis):
     """
-
-    # This needs changing.
-    if 'size' not in kwargs.keys():
-        kwargs['size'] = 10
-    if 'ratio' not in kwargs.keys():
-        kwargs['ratio'] = 0.5
-
-    if "edge_colormap" in kwargs.keys():
-        raise Exception("Did you mean 'event_colormap'?")
+    if ax is None:
+        fig = plt.figure(**kwargs)
+        ax = fig.add_subplot(111)
 
     G = eventgraph.create_networkx_event_graph(event_colormap)
 
-    nx.set_node_attributes(G, 'shape', 'circle')
+    if minimum_size is not None:
+        for component in list(nx.weakly_connected_components(G)):
+            if len(component) < minimum_size:
+                for node in component:
+                    G.remove_node(node)
 
-    nx.set_node_attributes(G, 8, 'fontsize')
+    nodecolors = nx.get_node_attributes(G, 'fillcolor')
+    nodes = list(nodecolors.keys())
+    colors = list(nodecolors.values())
 
-    nx.set_node_attributes(G, 'filled', 'style')
-    nx.set_node_attributes(G, 'true', 'fixedsize')
-    nx.set_node_attributes(G, 0.3, 'width')
+    pos = nx.drawing.nx_pydot.pydot_layout(G, prog='dot')
 
-    nx.set_edge_attributes(G, 'open', 'arrowhead')  # normal open halfopen vee
-    nx.set_edge_attributes(G, 'bold', 'style')
+    # Convert position to time
+    if time_scaled:
+        pos = {key: (val[0],-eventgraph.events.time[key]) for key,val in pos.items()}
 
-    if remove_singles:
-        ins = nx.in_degree_centrality(G)
-        outs = nx.out_degree_centrality(G)
-        nodes_to_remove = [x for x in G.nodes() if ins[x] + outs[x] == 0.0]
-        G.remove_nodes_from(nodes_to_remove)
+    nx.draw_networkx_nodes(G, 
+                        pos=pos, 
+                        edgecolors='k',
+                        node_color=colors,
+                        ax=ax)
 
-    A = nx.drawing.nx_pydot.to_pydot(G)
+    nx.draw_networkx_edges(G, pos=pos)
 
-    A.set('layout', 'dot')
+    ax.axis('off');
 
-    A.set('size', kwargs['size'])
-    A.set('ratio', kwargs['ratio'])
-    A.set('dpi', 500)
-    A.set('dim', 2)
-    A.set('overlap', 'false')
-    A.set('minlen', 2)  # dot only
-
-    A.set('mode', 'spring')
-    A.set('K', 1)
-    A.set('start', 3)
-
-    if display:
-        return Image(A.create(format='png'))
-
-    return A
-
+    return ax
 
 def plot_full_barcode_efficiently(eventgraph, delta_ub, top, ax=None):
     """
