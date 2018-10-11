@@ -523,7 +523,7 @@ class EventGraph(object):
                 attrs = {'type': event.type, 'color': edge_colormap[event.type]} if typed  else {'color':'black'}
                 if isinstance(event.target, Iterable) and (len(event.target) == 0):
                     G.add_node(event.source)
-                elif isinstance(event.target, str) or isinstance(event.target, np.integer):
+                elif isinstance(event.target, str) or isinstance(event.target, np.int):
                     G.add_edge(event.source, event.target, **attrs)
                 else:
                     for target in event.target:
