@@ -539,7 +539,7 @@ class EventGraph(object):
 
         return G
 
-    def create_networkx_event_graph(self, event_colormap=None):
+    def create_networkx_event_graph(self, event_colormap=None, include_graph_data=False):
         """
         Creates a networkx graph representation of the event graph.
 
@@ -567,9 +567,12 @@ class EventGraph(object):
             attrs = {'type': event.type, 'fillcolor': event_colormap[event.type]} if typed else {'fillcolor':'grey'}
             G.add_node(ix, **attrs)
 
-        for _, edge in self.eg_edges.iterrows():
-            G.add_edge(edge.source, edge.target, **{'delta': edge.delta, 'motif': edge.motif})
-
+        if include_graph_data:
+            for _, edge in self.eg_edges.iterrows():
+                G.add_edge(edge.source, edge.target, **{'delta': edge.delta, 'motif': edge.motif})
+        else:
+            for _, edge in self.eg_edges.iterrows():
+                G.add_edge(edge.source, edge.target)
         return G
 
     def connected_components_indices(self):

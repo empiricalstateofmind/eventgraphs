@@ -94,7 +94,7 @@ def plot_event_graph(eventgraph, event_colormap=None, ax=None, time_scaled=False
         fig = plt.figure(**kwargs)
         ax = fig.add_subplot(111)
 
-    G = eventgraph.create_networkx_event_graph(event_colormap)
+    G = eventgraph.create_networkx_event_graph(event_colormap, include_graph_data=False)
 
     if minimum_size is not None:
         for component in list(nx.weakly_connected_components(G)):
