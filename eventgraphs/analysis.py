@@ -241,7 +241,7 @@ def calculate_component_durations_over_delta(eventgraph, delta_range, normalize=
 
     return duration_distributions, largest_duration
 
-def calculate_motif_entropy(eventgraph, miller_correct=False,  k=None, normalize=True):
+def calculate_motif_entropy(eventgraph, miller_correct=False,  k=None, normalize=False):
     """
     Calculate the motif entropy
 
